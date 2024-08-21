@@ -1,0 +1,124 @@
+﻿@using BlazorAuthTemplate.Client.Helpers
+@inject ICategoryService CategoryService
+
+@if (BlogPost != null)
+{
+	<EditForm Model="BlogPost" OnValidSubmit="HandleSubmit" class="row">
+		<DataAnnotationsValidator />
+
+		<div class="col-lg-4">
+			@*Title*@
+			<div class="mb-2">
+				<label class="form-label">Title</label>
+				<InputText class="form-control" @bind-Value="BlogPost.Title" />
+				<ValidationMessage For="() => BlogPost.Title" />
+			</div>
+			@*Abstract*@
+			<div class="mb-2">
+				<label class="form-label">Abstract</label>
+				<InputTextArea class="form-control" @bind-Value="BlogPost.Abstract" rows="3" />
+				<ValidationMessage For="() => BlogPost.Abstract" />
+			</div>
+			@*Category*@
+			<div class="mb-2">
+				<label class="form-label">Category</label>
+				<InputSelect class="form-select" @bind-Value="BlogPost.CategoryId">
+					<option value="">Select a Category</option>
+					@foreach (CategoryDTO category in categories)
+					{
+						<option value="@category.Id">@category.Name</option>
+					}
+				</InputSelect>
+				<ValidationMessage For="() => BlogPost.CategoryId" />
+			</div>
+			@*Image*@
+			<div class="mb-2">
+				<label class="form-label">Image</label>
+				<img class="img-fluid rounded-3" style="max-height: 350px" 
+						src="@(string.IsNullOrEmpty(BlogPost.ImageUrl) ? ImageHelper.DefaultBlogImage : BlogPost.ImageUrl)" />
+				<InputFile class="form-control" accept=".png, .jpg, .jpeg, .svg" OnChange="HandleFileChange" @bind-value="BlogPost.ImageUrl" />
+				<span class="text-danger">@fileError</span>
+			</div>
+		</div>
+		<div class="col-lg-8">
+			<div class="flex-fill vstack">
+				<label class="form-label">Content</label>
+				<InputTextArea class="form-control" @bind-Value="BlogPost.Content" rows="30"/>
+				<ValidationMessage For="() => BlogPost.Content" />
+			</div>
+
+			@*Tags Here*@
+		</div>
+		<div class="col-12">
+			@*isPublished*@
+			<div class="form-check">
+				<label class="form-check-label">
+					<InputCheckbox class="form-check-input" @bind-Value="BlogPost.IsPublished" />
+					Publish
+				</label>
+			</div>
+			<button class="btn btn-primary" type="submit">Save</button>
+		</div>
+
+	</EditForm>
+}
+
+@code {
+
+	[Parameter, EditorRequired]
+	public BlogPostDTO? BlogPost { get; set; }
+
+	[Parameter, EditorRequired]
+	public EventCallback<BlogPostDTO> OnSubmit { get; set; }
+
+	private IEnumerable<CategoryDTO> categories = [];
+
+	private string? fileError;
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			categories = await CategoryService.GetCategoriesAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+		}
+	}
+
+	private async Task HandleSubmit()
+	{
+		try
+		{
+			await OnSubmit.InvokeAsync(BlogPost);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+		}
+	}
+
+	private async Task HandleFileChange(InputFileChangeEventArgs args)
+	{
+		fileError = null;
+
+		IBrowserFile selectedFile = args.File;
+
+		if (selectedFile.Size > ImageHelper.MaxFileSize)
+		{
+			fileError = "The selected image is too large.";
+		}
+
+		try
+		{
+			BlogPost!.ImageUrl = await ImageHelper.GetDataUrlAsync(selectedFile);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			fileError = "Could not read the selected file.";
+		}
+	}
+}

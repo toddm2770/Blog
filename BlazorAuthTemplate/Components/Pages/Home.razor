@@ -1,0 +1,69 @@
+﻿@page "/"
+@inject IBlogPostService BlogService
+@using BlazorAuthTemplate.Client.Models
+@using BlazorAuthTemplate.client.Services.Interfaces
+
+<PageTitle>Home</PageTitle>
+
+<!--BreadCrumb-->
+<nav aria-label="breadcrumb">
+	<ol class="pt-lg-3 pb-lg-4 pb-2 breadcrumb">
+		<li class="breadcrumb-item"><a href="index.html">Home</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Blog list with sidebar</li>
+	</ol>
+</nav>
+
+<div class="row mb-md-2 mb-xl-4">
+	<!--blog posts-->
+	<div class="col-lg-9 pe-lg-4 pe-xl-5">
+		<h1 class="pb-3 pb-lg-4">Blog list with sidebar</h1>
+
+		@foreach (BlogPostDTO blogPost in blogPosts)
+		{
+            <article class="row g-0 border-0 mb-4">
+                <a class="col-sm-5 bg-repeat-0 bg-size-cover bg-position-center rounded-5" href="blog-single-v1.html" style="background-image: url(assets/img/blog/list/01.jpg); min-height: 14rem" aria-label="Post image"></a>
+                <div class="col-sm-7">
+                    <div class="pt-4 pb-sm-4 ps-sm-4 pe-lg-4">
+                        <h3>
+                            <a href="blog-single-v1.html">Business strategy for a brand of vintage bags</a>
+                        </h3>
+                        <p class="d-sm-none d-md-block">Morbi et massa fames ac scelerisque sit commodo dignissim faucibus vel quisque proin lectus et massa fames ac scelerisque fames velit diam sit...</p>
+                        <div class="d-flex flex-wrap align-items-center mt-n2">
+                            <a class="nav-link text-body-secondary fs-sm fw-normal p-0 mt-2 me-3" href="#">
+                                6
+                                <i class="ai-share fs-lg ms-1"></i>
+                            </a>
+                            <a class="nav-link text-body-secondary fs-sm fw-normal d-flex align-items-end p-0 mt-2" href="#">
+                                12
+                                <i class="ai-message fs-lg ms-1"></i>
+                            </a>
+                            <span class="fs-xs opacity-20 mt-2 mx-3">|</span>
+                            <span class="fs-sm text-body-secondary mt-2">8 hours ago</span>
+                            <span class="fs-xs opacity-20 mt-2 mx-3">|</span>
+                            <a class="badge text-nav fs-xs border mt-2" href="#">Business</a>
+                        </div>
+                    </div>
+                </div>
+            </article>	
+		}
+
+		@*pagination*@
+	</div>
+
+	@*sidebar*@
+</div>
+
+<div class="container">
+	<h1>Hello, world!</h1>
+
+	Welcome to your new app.
+</div>
+
+@code{
+	private IEnumerable<BlogPostDTO> blogPosts = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		blogPosts = await BlogService.GetPublishedPostsAsync();
+	}
+}

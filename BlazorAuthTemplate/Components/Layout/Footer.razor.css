@@ -1,0 +1,12 @@
+﻿footer {
+    background: var(--tm-theme-900);
+    color: var(--tm-light-color);
+}
+
+footer i {
+    font-size: 2rem;
+}
+
+footer i:hover {
+    color: var(--cf-theme-200)
+}

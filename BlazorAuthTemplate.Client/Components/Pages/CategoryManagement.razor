@@ -1,0 +1,105 @@
+﻿@page "/categories"
+@using BlazorAuthTemplate.Client.Helpers
+
+@rendermode InteractiveServer
+
+@inject ICategoryService CategoryService
+
+<div class="container">
+	<EditForm Model="formCategory" OnValidSubmit="HandleSubmit">
+		<DataAnnotationsValidator/>
+				<div class="row">
+					<div class="col-4">
+						<img src="@(string.IsNullOrEmpty(Category?.ImageUrl) ? ImageHelper.DefaultCategoryImage : Category?.ImageUrl )" 
+							class="square-img-container rounded-start overflow-hidden" style="max-height: 350px" />
+						<span class="text-danger">@fileError</span>
+					</div>
+					<div class="col-8">
+						<div class="vstack">
+							<label for="categoryName" class="form-label">Name</label>
+							<InputText class="form-control" placeholder="Category Name" @bind-Value="formCategory.Name"/>
+
+							<label for="categoryDescription" class="form-label">Description</label>
+							<InputTextArea class="form-control" placeholder="Describe the category" @bind-Value="formCategory.Description" rows="3" />
+
+							<label for="categoryImage" class="form-label">Image</label>
+							<InputFile OnChange="OnFileChange" @bind-value="formCategory.ImageUrl" class="form-control" accept=".png, .jpg, .jpeg, .svg" />
+						</div>
+						<button type="submit" class="btn btn-primary mt-2 text-end">
+							Save
+						</button>
+						<ValidationMessage For="() => formCategory.Name" />
+					</div>
+				</div>
+	</EditForm>
+
+	@foreach (var Category in categories)
+	{
+		<div class="col" @key="Category.Id">
+			<CategoryCard Category="Category"></CategoryCard>
+		</div>
+	}
+
+</div>
+
+@code {
+
+	[Parameter, EditorRequired]
+	public EventCallback<BlogPostDTO> OnSubmit { get; set; }
+
+	private CategoryDTO formCategory = new CategoryDTO();
+
+	private IEnumerable<CategoryDTO> categories = [];
+
+	private CategoryDTO? Category { get; set; }
+
+	private string? fileError;
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			categories = await CategoryService.GetCategoriesAsync();
+		}
+		catch (Exception ex)
+		{
+
+			Console.WriteLine(ex);
+		}
+	}
+
+	private async Task HandleSubmit()
+	{
+		try
+		{
+			await OnSubmit.InvokeAsync(Category);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+		}
+	}
+
+	private async Task OnFileChange(InputFileChangeEventArgs changeEvent)
+	{
+		fileError = null;
+
+		IBrowserFile selectedFile = changeEvent.File;
+
+		if (selectedFile.Size > ImageHelper.MaxFileSize)
+		{
+			fileError = "The selected image is too large.";
+		}
+
+		try
+		{
+
+			Category!.ImageUrl = await ImageHelper.GetDataUrlAsync(selectedFile);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			fileError = "Could not read the selected file.";
+		}
+	}
+}

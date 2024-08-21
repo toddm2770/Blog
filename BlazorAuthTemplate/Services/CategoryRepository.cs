@@ -73,7 +73,7 @@ namespace BlazorAuthTemplate.Services
 				context.Images.Add(category.Image);
 			}
 
-			context.Categories.Add(category);
+			context.Categories.Update(category);
 			await context.SaveChangesAsync();
 
 			if(existingImage is not null)

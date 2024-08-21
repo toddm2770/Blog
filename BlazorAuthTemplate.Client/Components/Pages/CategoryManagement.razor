@@ -10,25 +10,29 @@
 		<DataAnnotationsValidator/>
 				<div class="row">
 					<div class="col-4">
-						<img src="@(string.IsNullOrEmpty(Category?.ImageUrl) ? ImageHelper.DefaultCategoryImage : Category?.ImageUrl )" 
+						<img src="@(string.IsNullOrEmpty(formCategory?.ImageUrl) ? ImageHelper.DefaultCategoryImage : formCategory?.ImageUrl )" 
 							class="square-img-container rounded-start overflow-hidden" style="max-height: 350px" />
 						<span class="text-danger">@fileError</span>
 					</div>
 					<div class="col-8">
 						<div class="vstack">
 							<label for="categoryName" class="form-label">Name</label>
-							<InputText class="form-control" placeholder="Category Name" @bind-Value="formCategory.Name"/>
+							<InputText class="form-control" placeholder="Category Name" @bind-Value="formCategory!.Name"/>
+							<ValidationMessage For="() => formCategory.Name" />
 
 							<label for="categoryDescription" class="form-label">Description</label>
-							<InputTextArea class="form-control" placeholder="Describe the category" @bind-Value="formCategory.Description" rows="3" />
+							<InputTextArea class="form-control" placeholder="Describe the category" @bind-Value="formCategory.Description" rows="3"></InputTextArea>
+							<ValidationMessage For="() => formCategory.Description" />	
 
 							<label for="categoryImage" class="form-label">Image</label>
-							<InputFile OnChange="OnFileChange" @bind-value="formCategory.ImageUrl" class="form-control" accept=".png, .jpg, .jpeg, .svg" />
+							<InputFile OnChange="OnFileChange" @bind-Value="formCategory.ImageUrl" class="form-control" accept=".png, .jpg, .jpeg, .svg" />
+							<ValidationMessage For="() => formCategory.ImageUrl" />
 						</div>
-						<button type="submit" class="btn btn-primary mt-2 text-end">
-							Save
-						</button>
-						<ValidationMessage For="() => formCategory.Name" />
+						<div>
+							<button type="submit" class="btn btn-primary mt-2 text-end">
+								Save
+							</button>
+						</div>
 					</div>
 				</div>
 	</EditForm>
@@ -36,16 +40,13 @@
 	@foreach (var Category in categories)
 	{
 		<div class="col" @key="Category.Id">
-			<CategoryCard Category="Category"></CategoryCard>
+			<CategoryCard Category="Category" OnDeleteCallBack="DeleteCategory" OnEditCallBack="UpdateCategory"></CategoryCard>
 		</div>
 	}
 
 </div>
 
 @code {
-
-	[Parameter, EditorRequired]
-	public EventCallback<BlogPostDTO> OnSubmit { get; set; }
 
 	private CategoryDTO formCategory = new CategoryDTO();
 
@@ -72,7 +73,14 @@
 	{
 		try
 		{
-			await OnSubmit.InvokeAsync(Category);
+			if(formCategory is not null)
+			{
+				await CategoryService.CreateCategoryAsync(formCategory);
+
+				formCategory = new CategoryDTO();
+
+				categories = await CategoryService.GetCategoriesAsync();
+			}
 		}
 		catch (Exception ex)
 		{
@@ -94,12 +102,45 @@
 		try
 		{
 
-			Category!.ImageUrl = await ImageHelper.GetDataUrlAsync(selectedFile);
+			formCategory!.ImageUrl = await ImageHelper.GetDataUrlAsync(selectedFile);
 		}
 		catch (Exception ex)
 		{
 			Console.WriteLine(ex);
 			fileError = "Could not read the selected file.";
+		}
+	}
+
+	private async Task DeleteCategory(CategoryDTO category)
+	{
+
+		try
+		{
+			await CategoryService.DeleteCategoryAsync(category!.Id);
+
+			categories = await CategoryService.GetCategoriesAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+	private async Task UpdateCategory(CategoryDTO category)
+	{
+		try
+		{
+
+			await CategoryService.UpdateCategoryAsync(category);
+
+			Category = new CategoryDTO();
+
+			categories = await CategoryService.GetCategoriesAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
 		}
 	}
 }

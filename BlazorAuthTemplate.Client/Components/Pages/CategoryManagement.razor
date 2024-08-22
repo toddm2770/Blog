@@ -1,17 +1,28 @@
 ﻿@page "/categories"
+
 @using BlazorAuthTemplate.Client.Helpers
 
 @rendermode InteractiveServer
 
 @inject ICategoryService CategoryService
 
-<div class="container">
+<div class="container-fluid">
+
+@if(status == Status.Viewing)
+{
+	<div class=" d-flex justify-content-end">
+		<button @onclick="() => status = Status.Adding" class="btn btn-primary btn-lg mb-2 text-end">Add New Category</button>
+	</div>
+}
+
+@if (status == Status.Adding)
+{
 	<EditForm Model="formCategory" OnValidSubmit="HandleSubmit">
 		<DataAnnotationsValidator/>
 				<div class="row">
 					<div class="col-4">
 						<img src="@(string.IsNullOrEmpty(formCategory?.ImageUrl) ? ImageHelper.DefaultCategoryImage : formCategory?.ImageUrl )" 
-							class="square-img-container rounded-start overflow-hidden" style="max-height: 350px" />
+							class="rounded-start overflow-hidden" style="max-height: 350px" />
 						<span class="text-danger">@fileError</span>
 					</div>
 					<div class="col-8">
@@ -29,17 +40,17 @@
 							<ValidationMessage For="() => formCategory.ImageUrl" />
 						</div>
 						<div>
-							<button type="submit" class="btn btn-primary mt-2 text-end">
-								Save
-							</button>
+							<button type="submit" class="btn btn-primary mt-2">Save</button>
+
+							<button @onclick="() => status = Status.Viewing" class="btn btn-danger mt-2">Cancel</button>
 						</div>
 					</div>
 				</div>
 	</EditForm>
-
+}
 	@foreach (var Category in categories)
 	{
-		<div class="col" @key="Category.Id">
+		<div @key="Category.Id">
 			<CategoryCard Category="Category" OnDeleteCallBack="DeleteCategory" OnEditCallBack="UpdateCategory"></CategoryCard>
 		</div>
 	}
@@ -55,6 +66,14 @@
 	private CategoryDTO? Category { get; set; }
 
 	private string? fileError;
+
+	private enum Status
+	{
+		Adding,
+		Viewing
+	}
+
+	private Status status = Status.Viewing;
 
 	protected override async Task OnInitializedAsync()
 	{

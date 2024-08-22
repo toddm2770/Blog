@@ -25,7 +25,7 @@ namespace BlazorAuthTemplate.Services
 
 			BlogPost? blogPost = await context.BlogPosts.FirstOrDefaultAsync(b => b.Id == blogPostId);
 
-			if (blogPost != null) 
+			if (blogPost != null)
 			{
 				blogPost.IsPublished = false;
 				blogPost.IsDeleted = true;

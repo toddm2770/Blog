@@ -41,7 +41,7 @@ namespace BlazorAuthTemplate.Client.Models
 
         public bool IsDeleted { get; set; }
 
-        public string? ImageUrl { get; set; } = ImageHelper.DefaultProfilePicture;
+        public string? ImageUrl { get; set; }
 
         public virtual ICollection<CommentDTO>? Comments { get; set; } = [];
 

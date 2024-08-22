@@ -23,7 +23,7 @@ namespace BlazorAuthTemplate.Services
 				Description = categoryDTO.Description,
 			};
 
-			if (categoryDTO.ImageUrl.StartsWith("data:"))
+			if (categoryDTO.ImageUrl!.StartsWith("data:") == true)
 			{
 				newCategory.Image = UploadHelper.GetImageUpload(categoryDTO.ImageUrl);
 			}

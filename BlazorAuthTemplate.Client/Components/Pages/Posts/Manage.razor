@@ -1,0 +1,64 @@
+﻿@page "/author/posts/manage"
+
+@inject IBlogPostService BlogService
+
+@foreach (var BlogPost in blogPosts)
+{
+	<div @key="BlogPost.Id">
+		<BlogPostEditForm BlogPost="BlogPost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>
+	</div>
+}
+
+@code {
+
+	private IEnumerable<BlogPostDTO> blogPosts = [];
+
+	private BlogPostDTO? BlogPost { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			blogPosts = await BlogService.GetPublishedPostsAsync();
+		}
+		catch (Exception ex)
+		{
+
+			Console.WriteLine(ex);
+		}
+	}
+
+	private async Task DeletePost(BlogPostDTO BlogPost)
+	{
+
+		try
+		{
+			await BlogService.DeleteBlogPostAsync(BlogPost!.Id);
+
+			blogPosts = await BlogService.GetPublishedPostsAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+
+	private async Task UpdatePost()
+	{
+		try
+		{
+
+			await BlogService.UpdateBlogPostAsync(BlogPost);
+
+			BlogPost = new BlogPostDTO();
+
+			blogPosts = await BlogService.GetPublishedPostsAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+}

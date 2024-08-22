@@ -17,7 +17,7 @@
 <div class="row mb-md-2 mb-xl-4">
 	<!--blog posts-->
 	<div class="col-lg-9 pe-lg-4 pe-xl-5">
-		<h1 class="pb-3 pb-lg-4">Blog list with sidebar</h1>
+		<h1 class="pb-3 pb-lg-4">Todd's Blogs</h1>
 
 		@foreach (BlogPostDTO blogPost in blogPosts)
 		{
@@ -31,15 +31,15 @@
                         <p class="d-sm-none d-md-block">@blogPost.Abstract</p>
                         <div class="d-flex flex-wrap align-items-center mt-n2">
                             <a class="nav-link text-body-secondary fs-sm fw-normal p-0 mt-2 me-3" href="#">
-                                6
+                                @blogPost.Tags.Count
                                 <i class="ai-share fs-lg ms-1"></i>
                             </a>
                             <a class="nav-link text-body-secondary fs-sm fw-normal d-flex align-items-end p-0 mt-2" href="#">
-                                12
+                                @blogPost.Comments.Count
                                 <i class="ai-message fs-lg ms-1"></i>
                             </a>
                             <span class="fs-xs opacity-20 mt-2 mx-3">|</span>
-                            <span class="fs-sm text-body-secondary mt-2">@blogPost.Created</span>
+                            <span class="fs-sm text-body-secondary mt-2">@blogPost.Created.LocalDateTime</span>
                             <span class="fs-xs opacity-20 mt-2 mx-3">|</span>
                             <a class="badge text-nav fs-xs border mt-2" href="#">@blogPost.Category!.Name</a>
                         </div>

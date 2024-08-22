@@ -82,11 +82,13 @@ namespace BlazorAuthTemplate.Models
             return new BlogPostDTO()
             {
                 Id = post.Id,
-                //BlogPost Properties
                 Title = post.Title,
+                Abstract = post.Abstract,
                 Category = category,
                 Comments = [.. post.Comments.Select(c => c.ToDTO())],
-                Tags = tags
+                Tags = tags,
+                Created = post.Created,
+                ImageUrl = post.ImageUrl
             };
 
         }

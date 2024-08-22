@@ -1,0 +1,222 @@
+﻿@using BlazorAuthTemplate.Client.Helpers
+@inject IBlogPostService BlogService
+
+@if (BlogPost is not null)
+{
+	if(status == Status.Viewing)
+	{
+		<div class="card h-100 shadow-lg mt-2 card-image">
+			<div class="row g-0">
+				<div class="col-12 col-md-4 rounded-start overflow-hidden">
+					<img src="@BlogPost.ImageUrl" class="square-img" style="max-height: 200px" />
+				</div>
+				<div class="col-12 col-md-8">
+					<div class="card-body">
+						<h5 class="card-title">@BlogPost.Title</h5>
+						<p>@BlogPost.Abstract</p>
+						<p>@BlogPost.Category</p>
+						<button @onclick="() => status = Status.Editing" class="btn btn-outline-warning">Edit</button>
+						<button @onclick="() => status = Status.Deleting" class="btn btn-danger">Delete</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+
+	if(status == Status.Deleting)
+	{
+		<div class="card h-100 shadow-lg mt-2 card-image">
+			<div class="row g-0">
+				<div class="col-12 col-md-4 rounded-start overflow-hidden">
+					<img src="@BlogPost.ImageUrl" class="square-img" style="max-height: 200px" />
+				</div>
+				<div class="col-12 col-md-8">
+					<div class="card-body">
+						<h5 class="card-title">@BlogPost.Title</h5>
+						<p>@BlogPost.Abstract</p>
+						<p>@BlogPost.Category</p>
+						<button @onclick="DeletePost" class="btn btn-danger">Delete</button>
+						<button @onclick="() => status = Status.Viewing" class="btn btn-outline-warning">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+
+	if(status == Status.Editing)
+	{
+		<EditForm Model="blogPostForm" OnValidSubmit="UpdateItem" class="row">
+			<DataAnnotationsValidator />
+
+			<div class="col-lg-4">
+				@*Title*@
+				<div class="mb-2">
+					<label class="form-label">Title</label>
+					<InputText class="form-control" @bind-Value="blogPostForm!.Title" />
+					<ValidationMessage For="() => blogPostForm.Title" />
+				</div>
+				@*Abstract*@
+				<div class="mb-2">
+					<label class="form-label">Abstract</label>
+					<InputTextArea class="form-control" @bind-Value="blogPostForm.Abstract" rows="3" />
+					<ValidationMessage For="() => blogPostForm.Abstract" />
+				</div>
+				@*Category*@
+				<div class="mb-2">
+					<label class="form-label">Category</label>
+					<InputSelect class="form-select" @bind-Value="blogPostForm.CategoryId">
+						<option value="">Select a Category</option>
+						@foreach (CategoryDTO category in categories)
+						{
+							<option value="@category.Id">@category.Name</option>
+						}
+					</InputSelect>
+					<ValidationMessage For="() => blogPostForm.CategoryId" />
+				</div>
+				@*Image*@
+				<div class="mb-2">
+					<label class="form-label">Image</label>
+					<img class="img-fluid rounded-3" style="max-height: 350px"
+						 src="@(string.IsNullOrEmpty(blogPostForm.ImageUrl) ? ImageHelper.DefaultBlogImage : blogPostForm.ImageUrl)" />
+					<InputFile class="form-control" accept=".png, .jpg, .jpeg, .svg" OnChange="OnFileChange" @bind-Value="blogPostForm.ImageUrl" />
+					<span class="text-danger">@fileError</span>
+				</div>
+			</div>
+			<div class="col-lg-8">
+				<div class="flex-fill vstack">
+					<label class="form-label">Content</label>
+					<InputTextArea class="form-control" @bind-Value="blogPostForm.Content" rows="30" />
+					<ValidationMessage For="() => blogPostForm.Content" />
+				</div>
+
+				@*Tags Here*@
+			</div>
+			<div class="col-12">
+				@*isPublished*@
+				<div class="form-check">
+					<label class="form-check-label">
+						<InputCheckbox class="form-check-input" @bind-Value="blogPostForm.IsPublished" />
+						Publish
+					</label>
+				</div>
+				<button class="btn btn-primary" type="submit">Save</button>
+				<button @onclick="CancelEdit" class="btn btn-warning">Cancel</button>
+			</div>
+
+		</EditForm>
+	}
+}
+
+
+@code {
+	[Parameter, EditorRequired]
+	public BlogPostDTO? BlogPost { get; set; }
+
+	[Parameter]
+	public EventCallback<BlogPostDTO> OnDeleteCallBack { get; set; }
+
+	[Parameter]
+	public EventCallback<BlogPostDTO> OnEditCallBack { get; set; }
+
+	private BlogPostDTO? blogPostForm;
+
+	private IEnumerable<BlogPostDTO> blogPosts { get; set; }
+
+	private IEnumerable<CategoryDTO> categories = [];
+
+	private string? fileError;
+
+	private enum Status
+	{
+		Viewing,
+		Editing,
+		Deleting
+	}
+
+	private Status status = Status.Viewing;
+
+	protected override void OnParametersSet()
+	{
+		blogPostForm = new()
+			{
+				Id = BlogPost.Id,
+				Title = BlogPost.Title,
+				Abstract = BlogPost.Abstract,
+				Category = BlogPost.Category,
+				Tags = BlogPost.Tags,
+				Created = BlogPost.Created,
+				Updated = BlogPost.Updated,
+				ImageUrl = BlogPost?.ImageUrl ?? ImageHelper.DefaultBlogImage
+
+			};
+	}
+
+	public async Task DeletePost()
+	{
+		try
+		{
+			await OnDeleteCallBack.InvokeAsync(BlogPost);
+			status = Status.Viewing;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+
+	public async Task UpdateItem()
+	{
+		try
+		{
+			await OnEditCallBack.InvokeAsync(blogPostForm);
+			status = Status.Viewing;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+
+	}
+
+	private async Task OnFileChange(InputFileChangeEventArgs changeEvent)
+	{
+		fileError = null;
+
+		IBrowserFile selectedFile = changeEvent.File;
+
+		if (selectedFile.Size > ImageHelper.MaxFileSize)
+		{
+			fileError = "The selected image is too large.";
+		}
+
+		try
+		{
+
+			blogPostForm!.ImageUrl = await ImageHelper.GetDataUrlAsync(selectedFile);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			fileError = "Could not read the selected file.";
+		}
+	}
+
+	private async void CancelEdit()
+	{
+		blogPostForm = new()
+			{
+				Id = BlogPost.Id,
+				Title = BlogPost.Title,
+				Abstract = BlogPost.Abstract,
+				Category = BlogPost.Category,
+				Tags = BlogPost.Tags,
+				Created = BlogPost.Created,
+				Updated = BlogPost.Updated,
+				ImageUrl = BlogPost?.ImageUrl ?? ImageHelper.DefaultBlogImage
+			};
+			status = Status.Viewing;
+			blogPosts = await BlogService.GetPublishedPostsAsync();
+	}
+}

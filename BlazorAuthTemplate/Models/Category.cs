@@ -34,7 +34,8 @@ public static class CategoryExtension
             Name = category.Name,
             Description = category.Description,
             ImageUrl = category.ImageUrl, 
-            Posts = [.. category.Posts.Select(p => p.ToDTO())]
+            Posts = [.. category.Posts.Select(p => p.ToDTO())],
+            BlogPostCount = category.Posts.Count()
         };
     }
 }

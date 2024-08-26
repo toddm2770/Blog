@@ -1,14 +1,17 @@
 ﻿@using BlazorAuthTemplate.Client.Helpers
 @inject IBlogPostService BlogService
+@inject ICategoryService CategoryService
+
+
 
 @if (BlogPost is not null)
 {
 	if(status == Status.Viewing)
 	{
-		<div class="card h-100 shadow-lg mt-2 card-image">
+		<div class="card h-100 shadow-lg card-image mb-2">
 			<div class="row g-0">
 				<div class="col-12 col-md-4 rounded-start overflow-hidden">
-					<img src="@BlogPost.ImageUrl" class="square-img" style="max-height: 200px" />
+					<img src="@BlogPost.ImageUrl" class="square-img" style="max-height: 300px" />
 				</div>
 				<div class="col-12 col-md-8">
 					<div class="card-body">
@@ -135,6 +138,11 @@
 
 	private Status status = Status.Viewing;
 
+	protected async override Task OnInitializedAsync()
+	{
+		categories = await CategoryService.GetCategoriesAsync();
+	}
+
 	protected override void OnParametersSet()
 	{
 		blogPostForm = new()
@@ -142,6 +150,7 @@
 				Id = BlogPost.Id,
 				Title = BlogPost.Title,
 				Abstract = BlogPost.Abstract,
+				Content = BlogPost.Content,
 				Category = BlogPost.Category,
 				Tags = BlogPost.Tags,
 				Created = BlogPost.Created,

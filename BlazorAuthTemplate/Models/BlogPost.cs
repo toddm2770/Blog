@@ -83,11 +83,17 @@ namespace BlazorAuthTemplate.Models
             {
                 Id = post.Id,
                 Title = post.Title,
+                Slug = post.Slug,
                 Abstract = post.Abstract,
+                Content = post.Content,
+                IsPublished = post.IsPublished,
+                IsDeleted = post.IsDeleted,
+                CategoryId = post.CategoryId,
                 Category = category,
                 Comments = [.. post.Comments.Select(c => c.ToDTO())],
                 Tags = tags,
                 Created = post.Created,
+                Updated = post.Updated,
                 ImageUrl = post.ImageUrl
             };
 

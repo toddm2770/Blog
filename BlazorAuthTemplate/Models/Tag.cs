@@ -7,7 +7,7 @@ namespace BlazorAuthTemplate.Models
     {
         public int Id { get; set; }
 
-        public int Name { get; set; }
+        public string? Name { get; set; }
 
         public virtual ICollection<BlogPost> Posts { get; set; } = [];
     }

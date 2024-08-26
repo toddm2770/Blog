@@ -49,7 +49,14 @@ namespace BlazorAuthTemplate.Services
 			return category?.ToDTO();
 		}
 
-		public async Task UpdateCategoryAsync(CategoryDTO categoryDTO)
+        public async Task<IEnumerable<CategoryDTO>> GetTopCategoriesAsync(int count)
+        {
+            IEnumerable<Category> categories = await _repository.GetTopCategoriesAsync(count);
+
+			return categories.Select(c => c.ToDTO());
+        }
+
+        public async Task UpdateCategoryAsync(CategoryDTO categoryDTO)
 		{
 			var categoryToUpdate = await _repository.GetCategoryByIdAsync(categoryDTO.Id);
 			if (categoryToUpdate is null)

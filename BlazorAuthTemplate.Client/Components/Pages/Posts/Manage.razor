@@ -2,24 +2,77 @@
 
 @inject IBlogPostService BlogService
 
-@foreach (var BlogPost in blogPosts)
+@rendermode InteractiveServer
+
+
+
+<div class="text-end">
+	Published Posts<input type="checkbox" @bind-value="PublishedCheckBox" class="ms-1 me-3" checked/>
+	Draft Posts<input type="checkbox" @bind-value="DraftCheckBox" class="ms-1 me-3" />
+	Deleted Posts<input type="checkbox" @bind-value="DeletedCheckBox" class="ms-1 me-3" />
+</div>
+
+@if (PublishedCheckBox == true)
 {
-	<div @key="BlogPost.Id">
-		<BlogPostEditForm BlogPost="BlogPost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>
-	</div>
+	@foreach (var BlogPost in publishedBlogPosts)
+	{
+		<h4 class="text-center align-items-bottom mt-5 text-primary">Published</h4>
+		<div @key="BlogPost.Id">
+			<BlogPostEditForm BlogPost="BlogPost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>
+		</div>
+	}
 }
+
+@if (DraftCheckBox == true)
+{
+	@foreach (var BlogPost in draftBlogPosts)
+	{
+		<h4 class="text-center align-items-bottom mt-5 text-warning">Draft</h4>
+		<div @key="BlogPost.Id">
+			<BlogPostEditForm BlogPost="BlogPost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>		
+		</div>
+	}
+}
+
+@if (DeletedCheckBox == true)
+{
+	@foreach (var BlogPost in deletedBlogPosts)
+	{
+		<h4 class="text-center align-items-bottom mt-5 text-danger">Deleted</h4>
+		<div @key="BlogPost.Id">
+			<BlogPostEditForm BlogPost="BlogPost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>
+		</div>
+	}
+}
+
+
 
 @code {
 
-	private IEnumerable<BlogPostDTO> blogPosts = [];
+	private IEnumerable<BlogPostDTO> publishedBlogPosts = [];
+
+	private IEnumerable<BlogPostDTO> deletedBlogPosts = [];
+
+	private IEnumerable<BlogPostDTO> draftBlogPosts = [];
 
 	private BlogPostDTO? BlogPost { get; set; }
+
+	bool PublishedCheckBox = true;
+
+	bool DraftCheckBox = false;
+
+	bool DeletedCheckBox = false;
 
 	protected override async Task OnInitializedAsync()
 	{
 		try
 		{
-			blogPosts = await BlogService.GetPublishedPostsAsync();
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync();
+
+			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
+
+			draftBlogPosts = await BlogService.GetDraftPostsAsync();
+
 		}
 		catch (Exception ex)
 		{
@@ -35,7 +88,11 @@
 		{
 			await BlogService.DeleteBlogPostAsync(BlogPost!.Id);
 
-			blogPosts = await BlogService.GetPublishedPostsAsync();
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync();
+
+			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
+
+			draftBlogPosts = await BlogService.GetDraftPostsAsync();
 		}
 		catch (Exception ex)
 		{
@@ -44,7 +101,7 @@
 		}
 	}
 
-	private async Task UpdatePost()
+	private async Task UpdatePost(BlogPostDTO BlogPost)
 	{
 		try
 		{
@@ -53,7 +110,11 @@
 
 			BlogPost = new BlogPostDTO();
 
-			blogPosts = await BlogService.GetPublishedPostsAsync();
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync();
+
+			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
+
+			draftBlogPosts = await BlogService.GetDraftPostsAsync();
 		}
 		catch (Exception ex)
 		{

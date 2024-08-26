@@ -2,11 +2,47 @@
 using BlazorAuthTemplate.Models;
 using BlazorAuthTemplate.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace BlazorAuthTemplate.Services
 {
 	public class BlogPostRepository(IDbContextFactory<ApplicationDbContext> contextFactory) : IBlogPostRepository
 	{
+		public async Task AddTagsToBlogPostAsync(int blogPostId, IEnumerable<string> tagNames)
+		{
+			using ApplicationDbContext context = contextFactory.CreateDbContext();
+
+			TextInfo textInfo = new CultureInfo("ed-US").TextInfo;
+
+			BlogPost? blogPost = await context.BlogPosts
+											  .Include(b => b.Tags)
+											  .FirstOrDefaultAsync(b => b.Id == blogPostId);
+
+			if (blogPost != null)
+			{
+				foreach (var tagName in tagNames) 
+				{
+					Tag? existingTag = await context.Tags.FirstOrDefaultAsync(t => t.Name!.Trim().ToLower() == tagName.Trim().ToLower());
+
+					if (existingTag != null)
+					{
+						blogPost.Tags.Add(existingTag);
+					}
+					else 
+					{
+						string titleCaseTagName = textInfo.ToTitleCase(tagName.Trim());
+
+						Tag newTag = new Tag(){ Name = titleCaseTagName };
+
+						context.Tags.Add(newTag);
+						blogPost.Tags.Add(newTag);
+					}
+				}
+
+				await context.SaveChangesAsync();
+
+			}
+		}
 		public async Task<BlogPost> CreateBlogPostAsync(BlogPost blogPost)
 		{
 			using ApplicationDbContext context = contextFactory.CreateDbContext();
@@ -38,11 +74,11 @@ namespace BlazorAuthTemplate.Services
 			using ApplicationDbContext context = contextFactory.CreateDbContext();
 
 			BlogPost? blogPost = await context.BlogPosts
-											.Where(b => b.IsPublished == true && b.IsDeleted == false)
-											.Include(b => b.Category)
-											.Include(b => b.Tags)
-											.Include(b => b.Comments).ThenInclude(c => c.Author)
-											.FirstOrDefaultAsync(b => b.Id == id);
+											  .Where(b => b.IsPublished == true && b.IsDeleted == false)
+											  .Include(b => b.Category)
+											  .Include(b => b.Tags)
+											  .Include(b => b.Comments).ThenInclude(c => c.Author)
+											  .FirstOrDefaultAsync(b => b.Id == id);
 
 			return blogPost;
 		}
@@ -68,11 +104,11 @@ namespace BlazorAuthTemplate.Services
 			List<BlogPost> blogPosts = new List<BlogPost>();
 
 			blogPosts = await context.BlogPosts
-									.Where(b => b.IsDeleted == true)
-									.Include(b => b.Category)
-									.Include(b => b.Comments)
-									.OrderByDescending(b => b.Created)
-									.ToListAsync();
+									 .Where(b => b.IsDeleted == true)
+									 .Include(b => b.Category)
+								   	 .Include(b => b.Comments)
+									 .OrderByDescending(b => b.Created)
+									 .ToListAsync();
 			return blogPosts;
 		}
 
@@ -83,11 +119,11 @@ namespace BlazorAuthTemplate.Services
 			List<BlogPost> blogPosts = new List<BlogPost>();
 
 			blogPosts = await context.BlogPosts
-									.Where(b => b.IsDeleted == false && b.IsPublished == false)
-									.Include(b => b.Comments)
-									.Include(b => b.Category)
-									.OrderByDescending(b => b.Created)
-									.ToListAsync();
+									 .Where(b => b.IsDeleted == false && b.IsPublished == false)
+									 .Include(b => b.Comments)
+									 .Include(b => b.Category)
+									 .OrderByDescending(b => b.Created)
+									 .ToListAsync();
 			return blogPosts;
 		}
 
@@ -98,11 +134,28 @@ namespace BlazorAuthTemplate.Services
 			List<BlogPost> blogPosts = new List<BlogPost>();
 
 			blogPosts = await context.BlogPosts
-									.Where(b => b.IsPublished == true && b.IsDeleted == false && b.CategoryId == categoryId)
-									.Include(b => b.Category)
-									.Include(b => b.Comments)
-									.OrderByDescending(b => b.Created)
-									.ToListAsync();
+									 .Where(b => b.IsPublished == true && b.IsDeleted == false && b.CategoryId == categoryId)
+									 .Include(b => b.Category)
+									 .Include(b => b.Comments)
+									 .OrderByDescending(b => b.Created)
+									 .ToListAsync();
+			return blogPosts;
+		}
+
+		public async Task<IEnumerable<BlogPost>> GetPostsByTagIdAsync(int tagId, int page, int pageSize)
+		{
+			using ApplicationDbContext context = contextFactory.CreateDbContext();
+
+			List<BlogPost> blogPosts = new List<BlogPost>();
+
+			blogPosts = await context.BlogPosts
+									 .Where(b => b.IsPublished == true && b.IsDeleted == false)
+									 .Include(b => b.Category)
+									 .Include(b => b.Comments)
+									 .Include(b => b.Tags)
+									 .Where(b => b.Tags.Any(t => t.Id == tagId))
+									 .OrderByDescending(b => b.Created)
+									 .ToListAsync();
 			return blogPosts;
 		}
 
@@ -111,15 +164,38 @@ namespace BlazorAuthTemplate.Services
 			using ApplicationDbContext context = contextFactory.CreateDbContext();
 
 			IEnumerable<BlogPost> blogPosts = await context.BlogPosts
-									.Where(b => b.IsPublished == true && b.IsDeleted == false)
-									.Include(b => b.Category)
-									.Include(b => b.Comments)
-									.OrderByDescending(b => b.Created)	
-									.ToListAsync();
+									                       .Where(b => b.IsPublished == true && b.IsDeleted == false)
+														   .Include(b => b.Category)
+														   .Include(b => b.Comments)
+														   .OrderByDescending(b => b.Created)	
+														   .ToListAsync();
 			return blogPosts;
 		}
 
-		public async Task PublishBlogPostAsync(int blogPostId)
+		public async Task<Tag?> GetTagByIdAsync(int tagId)
+		{
+			using ApplicationDbContext context = contextFactory.CreateDbContext();
+
+			Tag? tag =await context.Tags.FirstOrDefaultAsync(t => t.Id == tagId);
+
+			return tag;
+		}
+
+		public async Task<IEnumerable<BlogPost>> GetTopBlogPostsAsync(int count)
+        {
+			using ApplicationDbContext context = contextFactory.CreateDbContext();
+
+            List<BlogPost> blogPosts = await context.BlogPosts
+													.Where(b => b.IsPublished == true && b.IsDeleted == false)
+													.Include(b => b.Comments)
+													.Include (b => b.Category)
+													.OrderByDescending(b => b.Comments.Count())
+													.Take(count)
+													.ToListAsync();
+            return blogPosts;
+        }
+
+        public async Task PublishBlogPostAsync(int blogPostId)
 		{
 			using ApplicationDbContext context = contextFactory.CreateDbContext();
 
@@ -130,6 +206,21 @@ namespace BlazorAuthTemplate.Services
 				blogPost.IsDeleted = false;
 				blogPost.IsPublished = true;
 
+				await context.SaveChangesAsync();
+			}
+		}
+
+		public async Task RemoveTagsFromBlogPostAsync(int blogPostId)
+		{
+			using ApplicationDbContext context = contextFactory.CreateDbContext();
+
+			BlogPost? blogPost = await context.BlogPosts
+											  .Include(b => b.Tags)
+											  .FirstOrDefaultAsync(b => b.Id == blogPostId);
+
+			if(blogPost != null)
+			{
+				blogPost.Tags.Clear();
 				await context.SaveChangesAsync();
 			}
 		}
@@ -148,7 +239,12 @@ namespace BlazorAuthTemplate.Services
 			};
 		}
 
-		public async Task UnpublishBlogPostAsync(int blogPostId)
+        public Task<IEnumerable<BlogPost>> SearchBlogPostsAsync(string query, int page, int pageSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task UnpublishBlogPostAsync(int blogPostId)
 		{
 			using ApplicationDbContext context = contextFactory.CreateDbContext();
 

@@ -16,10 +16,15 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.7" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
     <PackageReference Include="SendGrid" Version="9.29.3" />
+    <PackageReference Include="TinyMCE.Blazor" Version="1.0.4" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\BlazorAuthTemplate.Client\Components\Pages\Posts\Switch.razor" Link="Switch.razor" />
   </ItemGroup>
 
 </Project>

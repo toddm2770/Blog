@@ -49,6 +49,7 @@ namespace BlazorAuthTemplate.Client.Models
 
         public virtual CategoryDTO? Category { get; set; }
 
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a category.")]
         public int CategoryId { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace BlazorAuthTemplate.Models
     public class Comment
     {
         private DateTimeOffset _created;
-        private DateTimeOffset _updated;
+        private DateTimeOffset? _updated;
 
         public int Id { get; set; }
 
@@ -28,7 +28,7 @@ namespace BlazorAuthTemplate.Models
         public DateTimeOffset? Updated
         {
             get => _updated;
-            set => _updated = value.ToUniversalTime();
+            set => _updated = value?.ToUniversalTime();
         }
 
         [MaxLength(200)]

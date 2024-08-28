@@ -42,7 +42,7 @@
 			{
 				foreach (CommentDTO comment in Comments.OrderByDescending(c => c.Created))
 				{
-					<CommentListItem OnEdit="HandleEditComment" OnDelete="HandleDeleteComment" Editable="comment.AuthorId == userInfo?.UserId" Comment = "comment" />
+					<CommentListItem OnEdit="HandleEditComment" OnDelete="HandleDeleteComment" Editable="comment.AuthorId == userInfo?.UserId" Comment="comment" />
 					<p>@comment.Content - @comment.AuthorName - @comment.Created</p>
 				}
 			}

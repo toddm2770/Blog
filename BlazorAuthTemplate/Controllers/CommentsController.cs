@@ -1,6 +1,8 @@
 ﻿using BlazorAuthTemplate.client.Services.Interfaces;
 using BlazorAuthTemplate.Client;
 using BlazorAuthTemplate.Client.Models;
+using BlazorAuthTemplate.Components.Account;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Bcpg;
 
@@ -12,7 +14,9 @@ namespace BlazorAuthTemplate.Controllers
     {
         private readonly ICommentService _commentService;
 
-        public CommentsController(ICommentService commentService)
+		private string _userId => User.GetUserId()!;
+
+		public CommentsController(ICommentService commentService)
         {
             _commentService = commentService;
         }
@@ -20,15 +24,15 @@ namespace BlazorAuthTemplate.Controllers
         private UserInfo? userInfo;
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CommentDTO>>> GetComments([FromQuery] int id)
+        public async Task<ActionResult<IEnumerable<CommentDTO>>> GetComments([FromQuery] int blogPostId)
         {
             try
             {
                 IEnumerable<CommentDTO> comments = [];
 
-                if (id != 0)
+                if (blogPostId != 0)
                 {
-                    comments = await _commentService.GetCommentsAsync(id);
+                    comments = await _commentService.GetCommentsAsync(blogPostId);
                 }
 
                 return Ok(comments);
@@ -41,11 +45,11 @@ namespace BlazorAuthTemplate.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<CommentDTO>> GetCommentById(int id)
+        public async Task<ActionResult<CommentDTO>> GetCommentById(int commentId)
         {
             try
             {
-                CommentDTO? comment = await _commentService.GetCommentByIdAsync(id);
+                CommentDTO? comment = await _commentService.GetCommentByIdAsync(commentId);
 
                 return comment == null ? NotFound() : Ok(comment);
             }
@@ -58,15 +62,20 @@ namespace BlazorAuthTemplate.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<CommentDTO>> CreateComment([FromBody] CommentDTO commentDTO)
         {
             try
             {
-                commentDTO.AuthorId = userInfo!.UserId;
+                if (commentDTO.BlogPostId == 0) return BadRequest();
+
+                string userId = _userId;
+
+                commentDTO.AuthorId = userId;
                 commentDTO.Created = DateTime.UtcNow;
 
                 CommentDTO createdComment = await _commentService.CreateCommentAsync(commentDTO);
-                return CreatedAtAction(nameof(GetCommentById), new { id = createdComment.Id });
+                return CreatedAtAction(nameof(GetCommentById), new { id = createdComment.Id }, createdComment);
             }
             catch (Exception ex)
             {

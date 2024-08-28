@@ -20,6 +20,10 @@
 						<p>@BlogPost.Category</p>
 						<button @onclick="() => status = Status.Editing" class="btn btn-outline-warning">Edit</button>
 						<button @onclick="() => status = Status.Deleting" class="btn btn-danger">Delete</button>
+						@if (BlogPost.IsDeleted == true)
+						{
+							<button @onclick="RestorePost" class="btn btn-outline-primary">Restore</button>
+						}
 					</div>
 				</div>
 			</div>
@@ -62,6 +66,9 @@
 
 	[Parameter]
 	public EventCallback<BlogPostDTO> OnEditCallBack { get; set; }
+
+	[Parameter]
+	public EventCallback<BlogPostDTO> OnRestoreCallBack { get; set; }
 
 	private BlogPostDTO? blogPostForm;
 
@@ -128,7 +135,20 @@
 			Console.WriteLine(ex);
 			throw;
 		}
+	}
 
+	public async Task RestorePost()
+	{
+		try
+		{
+			await OnRestoreCallBack.InvokeAsync(BlogPost);
+			status = Status.Viewing;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
 	}
 
 	private async Task OnFileChange(InputFileChangeEventArgs changeEvent)

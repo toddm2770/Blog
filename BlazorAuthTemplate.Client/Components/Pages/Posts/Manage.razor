@@ -18,7 +18,7 @@
 	{
 		<h4 class="text-center align-items-bottom mt-5 text-primary">Published</h4>
 		<div @key="BlogPost.Id">
-			<BlogPostEditForm BlogPost="BlogPost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>
+			<BlogPostEditForm BlogPost="BlogPost" OnRestoreCallBack="RestorePost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>
 		</div>
 	}
 }
@@ -29,7 +29,7 @@
 	{
 		<h4 class="text-center align-items-bottom mt-5 text-warning">Draft</h4>
 		<div @key="BlogPost.Id">
-			<BlogPostEditForm BlogPost="BlogPost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>		
+			<BlogPostEditForm BlogPost="BlogPost" OnRestoreCallBack="RestorePost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>		
 		</div>
 	}
 }
@@ -40,7 +40,7 @@
 	{
 		<h4 class="text-center align-items-bottom mt-5 text-danger">Deleted</h4>
 		<div @key="BlogPost.Id">
-			<BlogPostEditForm BlogPost="BlogPost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>
+			<BlogPostEditForm BlogPost="BlogPost" OnRestoreCallBack="RestorePost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>
 		</div>
 	}
 }
@@ -107,6 +107,27 @@
 		{
 
 			await BlogService.UpdateBlogPostAsync(BlogPost);
+
+			BlogPost = new BlogPostDTO();
+
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync();
+
+			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
+
+			draftBlogPosts = await BlogService.GetDraftPostsAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+
+	private async Task RestorePost(BlogPostDTO blogPost)
+	{
+		try
+		{
+			await BlogService.RestoreBlogPostAsync(blogPost.Id);
 
 			BlogPost = new BlogPostDTO();
 

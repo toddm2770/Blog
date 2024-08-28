@@ -87,7 +87,7 @@ namespace BlazorAuthTemplate.Services
 			using ApplicationDbContext context = contextFactory.CreateDbContext();
 
 			BlogPost? blogPost = await context.BlogPosts
-											  .Where(b => b.IsPublished == true && b.IsDeleted == false)
+											  .Where(b => b.IsPublished == true && b.IsDeleted == false || b.IsPublished == false && b.IsDeleted == false)
 											  .Include(b => b.Category)
 											  .Include(b => b.Tags)
 											  .Include(b => b.Comments).ThenInclude(c => c.Author)
@@ -252,9 +252,31 @@ namespace BlazorAuthTemplate.Services
 			};
 		}
 
-        public Task<IEnumerable<BlogPost>> SearchBlogPostsAsync(string query, int page, int pageSize)
+        public async Task<IEnumerable<BlogPost>> SearchBlogPostsAsync(string query)
         {
-            throw new NotImplementedException();
+            using ApplicationDbContext context = contextFactory.CreateDbContext();
+
+			string normalizedQuery = query.Trim().ToLower();
+
+			IEnumerable<BlogPost> results = await context.BlogPosts
+					.Where(b => b.IsPublished == true && b.IsDeleted == false)
+					.Include(b => b.Tags)
+					.Include(b => b.Category)
+					.Include(b => b.Comments)
+					.ThenInclude(c => c.Author)
+					.Where(b => string.IsNullOrWhiteSpace(normalizedQuery)
+					|| b.Title!.ToLower().Contains(normalizedQuery)
+					|| b.Abstract!.ToLower().Contains(normalizedQuery)
+					|| b.Content!.ToLower().Contains(normalizedQuery)
+					|| b.Category!.Name!.ToLower().Contains(normalizedQuery)
+					|| b.Tags!.Select(t => t.Name!.ToLower()).Any(tagName => tagName.Contains(normalizedQuery))
+					|| b.Comments!.Any(c => c.Content!.ToLower().Contains(normalizedQuery)
+										|| c.Author!.FirstName!.ToLower().Contains(normalizedQuery)
+										|| c.Author.LastName!.ToLower().Contains(normalizedQuery))
+					)
+					.OrderByDescending(b => b.Created)
+					.ToListAsync();
+			return results;
         }
 
         public async Task UnpublishBlogPostAsync(int blogPostId)

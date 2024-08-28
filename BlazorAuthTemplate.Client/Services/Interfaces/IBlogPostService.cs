@@ -18,7 +18,7 @@ namespace BlazorAuthTemplate.client.Services.Interfaces
 		Task RestoreBlogPostAsync(int blogPostId);
 		Task PublishBlogPostAsync(int blogPostId);
 		Task UnpublishBlogPostAsync(int blogPostId);
-		Task<IEnumerable<BlogPostDTO>> SearchBlogPostsAsync(string query, int page, int pageSize);
+		Task<IEnumerable<BlogPostDTO>> SearchBlogPostsAsync(string query);
 		Task<IEnumerable<BlogPostDTO>> GetTopBlogPostsAsync(int count);
 
 		Task<TagDTO?> GetTagByIdAsync(int id);

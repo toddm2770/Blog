@@ -141,9 +141,11 @@ namespace BlazorAuthTemplate.Services
 		public async Task RestoreBlogPostAsync(int blogPostId) =>		
 			await _repository.RestoreBlogPostAsync(blogPostId);
 
-        public Task<IEnumerable<BlogPostDTO>> SearchBlogPostsAsync(string query, int page, int pageSize)
+        public async Task<IEnumerable<BlogPostDTO>> SearchBlogPostsAsync(string query)
         {
-            throw new NotImplementedException();
+			IEnumerable<BlogPost> posts = await _repository.SearchBlogPostsAsync(query);
+
+			return posts.Select(p => p.ToDTO());
         }
 
         public async Task UnpublishBlogPostAsync(int blogPostId) =>		

@@ -15,11 +15,24 @@ namespace BlazorAuthTemplate.Client.Services
 
         public async Task<CommentDTO> CreateCommentAsync(CommentDTO commentDTO)
         {
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/comments", commentDTO);
-            response.EnsureSuccessStatusCode();
+    try
+    {
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/comments", commentDTO);
+        response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadFromJsonAsync<CommentDTO>()
-                ?? throw new HttpRequestException("Invalid JSON revieved from server");
+        CommentDTO? createdComment = await response.Content.ReadFromJsonAsync<CommentDTO>();
+        return createdComment!;
+    }
+    catch (HttpRequestException e)
+    {
+        Console.WriteLine($"Request error: {e.Message}");
+        throw;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Unexpected error: {ex.Message}");
+        throw;
+    }
         }
 
         public async Task DeleteCommentAsync(int commentId)
@@ -33,9 +46,9 @@ namespace BlazorAuthTemplate.Client.Services
             return await _httpClient.GetFromJsonAsync<CommentDTO>($"api/comments/{commentId}");
         }
 
-        public async Task<IEnumerable<CommentDTO>> GetCommentsAsync(int postId)
+        public async Task<IEnumerable<CommentDTO>> GetCommentsAsync(int blogPostId)
         {
-            var comments = await _httpClient.GetFromJsonAsync<IEnumerable<CommentDTO>>($"api/comments/{postId}") ?? [];
+            var comments = await _httpClient.GetFromJsonAsync<IEnumerable<CommentDTO>>($"api/comments?blogPostId={blogPostId}") ?? Array.Empty<CommentDTO>();
             return comments;
         }
 

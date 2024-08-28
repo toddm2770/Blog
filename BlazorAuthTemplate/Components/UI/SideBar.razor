@@ -16,7 +16,7 @@
         <!-- Search box -->
         <form action="search" method="get" class="position-relative mb-4 mb-lg-5">
             <i class="ai-search position-absolute top-50 start-0 translate-middle-y ms-3"></i>
-            <input class="form-control ps-5" type="search" placeholder="Enter keyword">
+            <input name="query" value="@Query" class="form-control ps-5" type="search" placeholder="Enter keyword">
         </form>
 
         <!-- Category links -->
@@ -92,6 +92,8 @@
 
 
 @code {
+    [SupplyParameterFromQuery]
+    public string? Query { get; set; }
 
     public IEnumerable<CategoryDTO> categories = [];
 

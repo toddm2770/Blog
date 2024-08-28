@@ -18,7 +18,7 @@ namespace BlazorAuthTemplate.Models
         [MaxLength(200, ErrorMessage = "The {0} must not exceed {1} characters.")]
         public string? Title { get; set; }
 
-        //[Required]
+        [Required]
         public string? Slug { get; set; }
 
         [Required]

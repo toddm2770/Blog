@@ -2,7 +2,9 @@
 using BlazorAuthTemplate.Models;
 using BlazorAuthTemplate.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace BlazorAuthTemplate.Services
 {
@@ -12,7 +14,7 @@ namespace BlazorAuthTemplate.Services
 		{
 			using ApplicationDbContext context = contextFactory.CreateDbContext();
 
-			TextInfo textInfo = new CultureInfo("ed-US").TextInfo;
+			TextInfo textInfo = new CultureInfo("en-US").TextInfo;
 
 			BlogPost? blogPost = await context.BlogPosts
 											  .Include(b => b.Tags)
@@ -22,6 +24,8 @@ namespace BlazorAuthTemplate.Services
 			{
 				foreach (var tagName in tagNames) 
 				{
+					try
+					{
 					Tag? existingTag = await context.Tags.FirstOrDefaultAsync(t => t.Name!.Trim().ToLower() == tagName.Trim().ToLower());
 
 					if (existingTag != null)
@@ -37,6 +41,13 @@ namespace BlazorAuthTemplate.Services
 						context.Tags.Add(newTag);
 						blogPost.Tags.Add(newTag);
 					}
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine(ex);
+						throw;
+					}
+
 				}
 
 				await context.SaveChangesAsync();
@@ -49,7 +60,9 @@ namespace BlazorAuthTemplate.Services
 
 			blogPost.Created = DateTime.Now;
 
-			context.BlogPosts.Add(blogPost);
+            blogPost.Slug = await GenerateSlugAsync(blogPost.Title!, blogPost.Id);
+
+            context.BlogPosts.Add(blogPost);
 			await context.SaveChangesAsync();
 
 			return blogPost;
@@ -270,9 +283,10 @@ namespace BlazorAuthTemplate.Services
 				blogPost.ImageId = blogPost.Image.Id;
 				context.Images.Add(blogPost.Image);
 			}
-			
-			//slug
-			blogPost.Updated = DateTime.UtcNow;
+
+            blogPost.Slug = await GenerateSlugAsync(blogPost.Title!, blogPost.Id);
+
+            blogPost.Updated = DateTimeOffset.UtcNow;
 
 			context.Update(blogPost);
 			await context.SaveChangesAsync();
@@ -283,5 +297,68 @@ namespace BlazorAuthTemplate.Services
 				await context.SaveChangesAsync();
 			}
 		}
-	}
+
+        #region slugs
+        private async Task<string> GenerateSlugAsync(string title, int id)
+        {
+            if (await ValidateSlugAsync(title, id))
+            {
+                return Slugify(title); // "my-first-post"
+            }
+            else
+            {
+                int i = 2;
+                string newTitle = $"{title} {i}"; // "my-first-post-2"
+                bool isValid = await ValidateSlugAsync(newTitle, id);
+
+                while (isValid == false)
+                {
+                    i++;
+                    newTitle = $"{title} {i}"; // "my-first-post-3"
+                    isValid = await ValidateSlugAsync(newTitle, id);
+                }
+
+                return Slugify(newTitle);
+            }
+        }
+
+        private async Task<bool> ValidateSlugAsync(string title, int blogId)
+        {
+            using ApplicationDbContext context = contextFactory.CreateDbContext();
+
+            string newSlug = Slugify(title);
+
+            bool isValid = false;
+            if (blogId == 0)
+            {
+                // this is a new post, so just check if anyone has this slug
+                isValid = !await context.BlogPosts.AnyAsync(bp => bp.Slug == newSlug);
+            }
+            else
+            {
+                // this is an existing post, so see if any OTHER posts have this slug
+                isValid = !await context.BlogPosts.AnyAsync(bp => bp.Slug == newSlug && bp.Id != blogId);
+            }
+
+            return isValid;
+        }
+
+        private static string Slugify(string title)
+        {
+            if (string.IsNullOrEmpty(title)) return title;
+
+            title = title.Normalize(System.Text.NormalizationForm.FormD);
+            char[] chars = title.Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark).ToArray();
+
+            string normalizedTitle = new string(chars).Normalize(System.Text.NormalizationForm.FormC)
+                                                      .ToLower()
+                                                      .Trim();
+
+            string titleWithoutSymbols = Regex.Replace(normalizedTitle, @"[^A-Za-z0-9\s-]", "");
+            string slug = Regex.Replace(titleWithoutSymbols, @"\s+", "-");
+
+            return slug;
+        }
+        #endregion
+    }
 }

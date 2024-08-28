@@ -55,7 +55,12 @@
 		@*Tags*@
 		<div class="mb-2">
 			<label class="form-label">Tags</label>
-			<InputText @bind-bind-Value="tagNames" class="form-control" />
+			<InputText @bind-Value="tagNames" class="form-control" />
+		</div>
+		@*Slug*@
+		<div class="mb-2">
+			<label class="form-label">Slug</label>
+			<InputText @bind-Value="BlogPost.Slug" class="form-control" />
 		</div>
 		<div class="col-12">
 			@*isPublished*@
@@ -140,6 +145,18 @@
 	{
 		try
 		{
+			IEnumerable<string> listofTagNames = tagNames.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+			List<TagDTO> tags = [];
+
+			foreach(string name in listofTagNames)
+			{
+				TagDTO tag = new TagDTO() { Name = name };
+				tags.Add(tag);
+			}
+
+			BlogPost!.Tags = tags;
+
 			await OnSubmit.InvokeAsync(BlogPost);
 		}
 		catch (Exception ex)

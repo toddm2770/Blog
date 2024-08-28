@@ -6,6 +6,7 @@ using BlazorAuthTemplate.Services;
 using BlazorAuthTemplate.Services.Interfaces;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -57,6 +58,10 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, GoogleEmailService>();
+builder.Services.AddSingleton<IEmailSender, GoogleEmailService>();
 
 var app = builder.Build();
 

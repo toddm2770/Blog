@@ -27,7 +27,7 @@
                 @foreach (CategoryDTO category in categories)
                 {
                     <li>
-                        <a class="nav-link d-flex p-0" href="/">
+                        <a class="nav-link d-flex p-0" href="/PostsByCategory/@category.Id">
                             @category.Name
                             <span class="fs-sm text-body-secondary ms-2">@category!.Posts.Count</span>
                         </a>
@@ -47,7 +47,7 @@
                         <img class="rounded" src="@(string.IsNullOrEmpty(blogPost?.ImageUrl) ? ImageHelper.DefaultCategoryImage : blogPost?.ImageUrl)" width="92" alt="Post image">
                     <div class="ps-3">
                         <h4 class="h6 mb-2">
-                            <a class="stretched-link" href="">
+                                <a class="stretched-link" href="/">
                                 @blogPost.Title
                             </a>
                         </h4>

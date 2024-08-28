@@ -45,6 +45,10 @@ namespace BlazorAuthTemplate.Services
 
 			newBlogPost = await _repository.CreateBlogPostAsync(newBlogPost);
 
+			IEnumerable<string> tagNames = blogPostDTO.Tags!.Select(t => t.Name!);
+
+			await _repository.AddTagsToBlogPostAsync(newBlogPost.Id, tagNames);
+
 			return newBlogPost.ToDTO();
 		}
 
@@ -148,9 +152,11 @@ namespace BlazorAuthTemplate.Services
 
 		public async Task UpdateBlogPostAsync(BlogPostDTO blogPost)
 		{
+			await _repository.RemoveTagsFromBlogPostAsync(blogPost.Id);
+
 			BlogPost? originalPost = await _repository.GetBlogPostByIdAsync(blogPost.Id);
 
-			if (originalPost is null) return;
+			if (originalPost is null) { return; }
 			
 				originalPost.Title = blogPost.Title;
 				originalPost.Slug = blogPost.Slug;
@@ -175,8 +181,11 @@ namespace BlazorAuthTemplate.Services
 				}
 				else originalPost.Image = null;
 
-				await _repository.UpdateBlogPostAsync(originalPost);
-			
+				await _repository.UpdateBlogPostAsync(originalPost);		
+
+				IEnumerable<string> tagNames = blogPost.Tags.Select(t => t.Name);
+
+				await _repository.AddTagsToBlogPostAsync(originalPost.Id, tagNames);
 		}
 	}
 }

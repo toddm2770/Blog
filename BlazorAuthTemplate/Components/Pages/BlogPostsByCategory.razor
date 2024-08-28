@@ -1,7 +1,9 @@
-﻿@page "/"
+﻿@page "/PostsByCategory/{categoryId:int}"
 @layout SideBarLayout
 
 @inject IBlogPostService BlogService
+@inject ICategoryService CategoryService
+
 @using BlazorAuthTemplate.Client.Models
 @using BlazorAuthTemplate.Components.Layout
 @using BlazorAuthTemplate.client.Services.Interfaces
@@ -11,19 +13,19 @@
 
 <!--BreadCrumb-->
 <nav aria-label="breadcrumb">
-	<ol class="pt-lg-3 pb-lg-4 pb-2 breadcrumb">
-		<li class="breadcrumb-item"><a href="index.html">Home</a></li>
-		<li class="breadcrumb-item active" aria-current="page">Blog list with sidebar</li>
-	</ol>
+    <ol class="pt-lg-3 pb-lg-4 pb-2 breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Blog list with sidebar</li>
+    </ol>
 </nav>
 
 <div class="row mb-md-2 mb-xl-4">
-	<!--blog posts-->
-	<div class="col-lg-9 pe-lg-4 pe-xl-5">
-		<h1 class="pb-3 pb-lg-4">Todd's Blogs</h1>
+    <!--blog posts-->
+    <div class="col-lg-9 pe-lg-4 pe-xl-5">
+        <h1 class="pb-3 pb-lg-4">@category?.Name Blogs</h1>
 
-		@foreach (BlogPostDTO blogPost in blogPosts)
-		{
+        @foreach (BlogPostDTO blogPost in blogPosts)
+        {
             <article class="row g-0 border-0 mb-4">
                 <a class="col-sm-5 bg-repeat-0 bg-size-cover bg-position-center rounded-5" href="posts/@blogPost.Slug" style="background-image: url(@(string.IsNullOrEmpty(blogPost?.ImageUrl) ? ImageHelper.DefaultCategoryImage : blogPost?.ImageUrl)); min-height: 14rem" aria-label="Post image"></a>
                 <div class="col-sm-7">
@@ -48,20 +50,27 @@
                         </div>
                     </div>
                 </div>
-            </article>	
-		}
+            </article>
+        }
 
-		@*pagination*@
-	</div>
+        @*pagination*@
+    </div>
 
-	@*sidebar*@
+    @*sidebar*@
 </div>
 
-@code{
-	private IEnumerable<BlogPostDTO> blogPosts = [];
+@code {
+    [Parameter]
+    public int categoryId { get; set; }
 
-	protected override async Task OnInitializedAsync()
-	{
-		blogPosts = await BlogService.GetPublishedPostsAsync();
-	}
+    private IEnumerable<BlogPostDTO> blogPosts = [];
+
+    private CategoryDTO? category { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        blogPosts = await BlogService.GetPostsByCategoryIdAsync(categoryId);
+
+        category = await CategoryService.GetCategoryByIdAsync(categoryId);
+    }
 }

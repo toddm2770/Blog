@@ -25,7 +25,7 @@ namespace BlazorAuthTemplate.Models
             set => _created = value.ToUniversalTime();
         }
 
-        public DateTimeOffset Updated
+        public DateTimeOffset? Updated
         {
             get => _updated;
             set => _updated = value.ToUniversalTime();

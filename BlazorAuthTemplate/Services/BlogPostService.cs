@@ -141,11 +141,18 @@ namespace BlazorAuthTemplate.Services
 		public async Task RestoreBlogPostAsync(int blogPostId) =>		
 			await _repository.RestoreBlogPostAsync(blogPostId);
 
-        public async Task<IEnumerable<BlogPostDTO>> SearchBlogPostsAsync(string query)
+        public async Task<PagedList<BlogPostDTO>> SearchBlogPostsAsync(string query, int page, int pageSize)
         {
-			IEnumerable<BlogPost> posts = await _repository.SearchBlogPostsAsync(query);
+			PagedList<BlogPost> posts = await _repository.SearchBlogPostsAsync(query, page, pageSize);
 
-			return posts.Select(p => p.ToDTO());
+			PagedList<BlogPostDTO> postDTOs = new()
+			{
+				Page = posts.Page,
+				TotalPages = posts.TotalPages,
+				TotalItems = posts.TotalItems,
+				Data = posts.Data.Select(p => p.ToDTO())
+			};
+			return postDTOs;
         }
 
         public async Task UnpublishBlogPostAsync(int blogPostId) =>		

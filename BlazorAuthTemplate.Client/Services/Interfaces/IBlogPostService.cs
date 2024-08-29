@@ -1,8 +1,11 @@
 ﻿using BlazorAuthTemplate.Client.Models;
+using BlazorAuthTemplate.Models;
+using System.Net.NetworkInformation;
+using System.Reflection;
 
 namespace BlazorAuthTemplate.client.Services.Interfaces
 {
-	public interface IBlogPostService
+    public interface IBlogPostService
 	{
 		Task<BlogPostDTO> CreateBlogPostAsync(BlogPostDTO blogPost);
 		Task UpdateBlogPostAsync(BlogPostDTO blogPost);
@@ -18,7 +21,7 @@ namespace BlazorAuthTemplate.client.Services.Interfaces
 		Task RestoreBlogPostAsync(int blogPostId);
 		Task PublishBlogPostAsync(int blogPostId);
 		Task UnpublishBlogPostAsync(int blogPostId);
-		Task<IEnumerable<BlogPostDTO>> SearchBlogPostsAsync(string query);
+		Task<PagedList<BlogPostDTO>> SearchBlogPostsAsync(string query, int page, int pageSize);
 		Task<IEnumerable<BlogPostDTO>> GetTopBlogPostsAsync(int count);
 
 		Task<TagDTO?> GetTagByIdAsync(int id);

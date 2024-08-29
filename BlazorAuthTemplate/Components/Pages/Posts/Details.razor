@@ -100,28 +100,14 @@ else
 		</div>
 	</div>
 
-
-
-	@* Comments will be handles here! *@
-	@* -----------> <--------------- *@
-
 	<AuthorizeView>
-
 		<Authorized>
-
 			<CommentArea @rendermode="InteractiveAuto" BlogPostId="blogPost.Id" Comments="blogPost.Comments"></CommentArea>
-
 		</Authorized>
-
 		<NotAuthorized>
-
 			<CommentArea BlogPostId="blogPost.Id" Comments="blogPost.Comments"></CommentArea>
-
 		</NotAuthorized>
-
 	</AuthorizeView>
-
-	@* -----------> <--------------- *@
 }
 @code {
 
@@ -139,3 +125,6 @@ else
 	}
 
 }
+
+@* this component will execute the exported onUpdate function when the page updates *@
+<BlazorPageScript.PageScript Src="./Components/Pages/Posts/Details.razor.js" />

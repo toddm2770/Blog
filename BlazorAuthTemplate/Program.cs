@@ -1,12 +1,16 @@
 using BlazorAuthTemplate.client.Services.Interfaces;
+using BlazorAuthTemplate.Client.Models;
+using BlazorAuthTemplate.Client.Services.Interfaces;
 using BlazorAuthTemplate.Components;
 using BlazorAuthTemplate.Components.Account;
 using BlazorAuthTemplate.Data;
+using BlazorAuthTemplate.Models;
 using BlazorAuthTemplate.Services;
 using BlazorAuthTemplate.Services.Interfaces;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -97,5 +101,24 @@ app.MapRazorComponents<App>()
 app.MapAdditionalIdentityEndpoints();
 
 app.MapControllers();
+
+
+
+// GET: api/blogposts
+app.MapGet("api/blogposts", async ([FromServices] IBlogPostDTOService blogService,
+								   [FromQuery] int page = 1,
+								   [FromQuery] int pageSize = 4) =>
+{
+	try
+	{
+		PagedList<BlogPostDTO> blogPosts = await blogService.GetPublishedPostsAsync(page, pageSize);
+		return Results.Ok(blogPosts);
+	}
+	catch (Exception ex)
+	{
+		Console.WriteLine(ex);
+		return Results.Problem();
+	}
+});
 
 app.Run();

@@ -1,4 +1,5 @@
 ﻿using BlazorAuthTemplate.Data;
+using BlazorAuthTemplate.Helpers.Extensions;
 using BlazorAuthTemplate.Models;
 using BlazorAuthTemplate.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -252,13 +253,13 @@ namespace BlazorAuthTemplate.Services
 			};
 		}
 
-        public async Task<IEnumerable<BlogPost>> SearchBlogPostsAsync(string query)
+        public async Task<PagedList<BlogPost>> SearchBlogPostsAsync(string query, int page, int pageSize)
         {
             using ApplicationDbContext context = contextFactory.CreateDbContext();
 
 			string normalizedQuery = query.Trim().ToLower();
 
-			IEnumerable<BlogPost> results = await context.BlogPosts
+			PagedList<BlogPost> results = await context.BlogPosts
 					.Where(b => b.IsPublished == true && b.IsDeleted == false)
 					.Include(b => b.Tags)
 					.Include(b => b.Category)
@@ -275,7 +276,7 @@ namespace BlazorAuthTemplate.Services
 										|| c.Author.LastName!.ToLower().Contains(normalizedQuery))
 					)
 					.OrderByDescending(b => b.Created)
-					.ToListAsync();
+					.ToPagedListAsync(page, pageSize);
 			return results;
         }
 

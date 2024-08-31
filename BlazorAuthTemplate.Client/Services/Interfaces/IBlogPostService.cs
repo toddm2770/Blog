@@ -10,7 +10,7 @@ namespace BlazorAuthTemplate.client.Services.Interfaces
 		Task<BlogPostDTO> CreateBlogPostAsync(BlogPostDTO blogPost);
 		Task UpdateBlogPostAsync(BlogPostDTO blogPost);
 
-		Task<IEnumerable<BlogPostDTO>> GetPublishedPostsAsync();
+		Task<PagedList<BlogPostDTO>> GetPublishedPostsAsync(int page, int pageSize);
 		Task<IEnumerable<BlogPostDTO>> GetPostsByCategoryIdAsync(int categoryId);
 		Task<IEnumerable<BlogPostDTO>> GetDraftPostsAsync();
 		Task<IEnumerable<BlogPostDTO>> GetDeletedPostsAsync();

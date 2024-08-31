@@ -7,17 +7,31 @@
     <UserSecretsId>aspnet-BlazorAuthTemplate-8ce48eba-b10d-43de-9788-3e15c38d98cf</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\BlazorAuthTemplate.Client\BlazorAuthTemplate.Client.csproj" />
     <PackageReference Include="BlazorPageScript" Version="1.0.0" />
     <PackageReference Include="MailKit" Version="4.7.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="MimeKit" Version="4.7.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+    <PackageReference Include="Scalar.AspNetCore" Version="1.1.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2" />
     <PackageReference Include="TinyMCE.Blazor" Version="1.0.4" />
   </ItemGroup>
 

@@ -3,6 +3,7 @@
 @layout SideBarLayout
 
 @using BlazorAuthTemplate.Client.Components.Pages.Comments
+@using BlazorAuthTemplate.Client.Helpers
 @using BlazorAuthTemplate.Client.Models
 @using BlazorAuthTemplate.Components.Layout
 @using BlazorAuthTemplate.Models
@@ -43,7 +44,7 @@ else
 
 	@* Show blog Image here if it exists *@
 	<figure class="figure d-flex justify-content-center">
-		<img class="figure-img rounded-5 mb-3" src="@blogPost.ImageUrl ?? ImageHelper.DefaultBlogImage" alt="Image" style="max-height: 24rem;">
+		<img class="figure-img rounded-5 mb-3" src="@blogPost.ImageUrl ?? @ImageHelper.DefaultBlogImage" alt="Image" style="max-height: 24rem;">
 	</figure>
 
 
@@ -108,6 +109,9 @@ else
 			<CommentArea BlogPostId="blogPost.Id" Comments="blogPost.Comments"></CommentArea>
 		</NotAuthorized>
 	</AuthorizeView>
+
+	@* this component will execute the exported onUpdate function when the page updates *@
+	<BlazorPageScript.PageScript Src="./Components/Pages/Posts/Details.razor.js" />
 }
 @code {
 
@@ -125,6 +129,3 @@ else
 	}
 
 }
-
-@* this component will execute the exported onUpdate function when the page updates *@
-<BlazorPageScript.PageScript Src="./Components/Pages/Posts/Details.razor.js" />

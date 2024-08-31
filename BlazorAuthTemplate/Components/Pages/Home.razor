@@ -4,6 +4,7 @@
 @inject IBlogPostService BlogService
 @using BlazorAuthTemplate.Client.Models
 @using BlazorAuthTemplate.Components.Layout
+@using BlazorAuthTemplate.Models
 @using BlazorAuthTemplate.client.Services.Interfaces
 @using BlazorAuthTemplate.Client.Helpers
 
@@ -22,7 +23,7 @@
 	<div class="col-lg-9 pe-lg-4 pe-xl-5">
 		<h1 class="pb-3 pb-lg-4">Todd's Blogs</h1>
 
-		@foreach (BlogPostDTO blogPost in blogPosts)
+		@foreach (BlogPostDTO blogPost in blogPosts.Data)
 		{
             <article class="row g-0 border-0 mb-4">
                 <a class="col-sm-5 bg-repeat-0 bg-size-cover bg-position-center rounded-5" href="posts/@blogPost.Slug" style="background-image: url(@(string.IsNullOrEmpty(blogPost?.ImageUrl) ? ImageHelper.DefaultCategoryImage : blogPost?.ImageUrl)); min-height: 14rem" aria-label="Post image"></a>
@@ -58,10 +59,15 @@
 </div>
 
 @code{
-	private IEnumerable<BlogPostDTO> blogPosts = [];
+
+    int page = 1;
+
+    int pageList = 10;
+
+	private PagedList<BlogPostDTO> blogPosts = new();
 
 	protected override async Task OnInitializedAsync()
 	{
-		blogPosts = await BlogService.GetPublishedPostsAsync();
+		blogPosts = await BlogService.GetPublishedPostsAsync(page, pageList);
 	}
 }

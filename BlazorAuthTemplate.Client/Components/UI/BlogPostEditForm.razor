@@ -1,4 +1,5 @@
 ﻿@using BlazorAuthTemplate.Client.Helpers
+@using BlazorAuthTemplate.Models
 @inject IBlogPostService BlogService
 @inject ICategoryService CategoryService
 
@@ -72,11 +73,15 @@
 
 	private BlogPostDTO? blogPostForm;
 
-	private IEnumerable<BlogPostDTO>? blogPosts { get; set; }
+	private PagedList<BlogPostDTO>? blogPosts { get; set; }
 
 	private IEnumerable<CategoryDTO> categories = [];
 
 	private string? fileError;
+
+	int page = 1;
+
+	int pageSize = 10;
 
 	private enum Status
 	{
@@ -188,6 +193,6 @@
 				ImageUrl = BlogPost?.ImageUrl ?? ImageHelper.DefaultBlogImage
 			};
 			status = Status.Viewing;
-			blogPosts = await BlogService.GetPublishedPostsAsync();
+			blogPosts = await BlogService.GetPublishedPostsAsync(page, pageSize);
 	}
 }

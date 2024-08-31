@@ -1,4 +1,5 @@
 ﻿@page "/author/posts/manage"
+@using BlazorAuthTemplate.Models
 
 @inject IBlogPostService BlogService
 
@@ -14,7 +15,7 @@
 
 @if (PublishedCheckBox == true)
 {
-	@foreach (var BlogPost in publishedBlogPosts)
+	@foreach (var BlogPost in publishedBlogPosts.Data)
 	{
 		<h4 class="text-center align-items-bottom mt-5 text-primary">Published</h4>
 		<div @key="BlogPost.Id">
@@ -49,7 +50,7 @@
 
 @code {
 
-	private IEnumerable<BlogPostDTO> publishedBlogPosts = [];
+	private PagedList<BlogPostDTO> publishedBlogPosts = new();
 
 	private IEnumerable<BlogPostDTO> deletedBlogPosts = [];
 
@@ -63,11 +64,17 @@
 
 	bool DeletedCheckBox = false;
 
+	int page = 1;
+
+	int pageSize = 10;
+
+	//int page, int pageSize
+
 	protected override async Task OnInitializedAsync()
 	{
 		try
 		{
-			publishedBlogPosts = await BlogService.GetPublishedPostsAsync();
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync(page, pageSize);
 
 			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
 
@@ -88,7 +95,7 @@
 		{
 			await BlogService.DeleteBlogPostAsync(BlogPost!.Id);
 
-			publishedBlogPosts = await BlogService.GetPublishedPostsAsync();
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync(page, pageSize);
 
 			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
 
@@ -110,7 +117,7 @@
 
 			BlogPost = new BlogPostDTO();
 
-			publishedBlogPosts = await BlogService.GetPublishedPostsAsync();
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync(page, pageSize);
 
 			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
 
@@ -131,7 +138,7 @@
 
 			BlogPost = new BlogPostDTO();
 
-			publishedBlogPosts = await BlogService.GetPublishedPostsAsync();
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync(page, pageSize);
 
 			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
 

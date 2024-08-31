@@ -102,20 +102,19 @@ namespace BlazorAuthTemplate.Services
 			return dtos;
 		}
 
-		public async Task<IEnumerable<BlogPostDTO>> GetPublishedPostsAsync()
+		public async Task<PagedList<BlogPostDTO>> GetPublishedPostsAsync(int page, int pageSize)
 		{
-			IEnumerable<BlogPost> blogPost = await _repository.GetPublishedPostsAsync(0, 0);
+			PagedList<BlogPost> blogPost = await _repository.GetPublishedPostsAsync(page, pageSize);
 
-			IEnumerable<BlogPostDTO> dtos = blogPost.Select(propa => propa.ToDTO());
+			List<BlogPostDTO> blogPostDTOs = blogPost.Data.Select(p => p.ToDTO()).ToList();
 
-			List<BlogPostDTO> blogPostDTOs = [];
-
-			foreach(var post in blogPost)
+			PagedList<BlogPostDTO> dtos = new PagedList<BlogPostDTO>
 			{
-				blogPostDTOs.Add(post.ToDTO());
-			}
-
-			dtos = blogPostDTOs;
+				Page = blogPost.Page,
+				TotalPages = blogPost.TotalPages,
+				TotalItems = blogPost.TotalItems,
+				Data = blogPostDTOs
+			};
 
 			return dtos;
 		}

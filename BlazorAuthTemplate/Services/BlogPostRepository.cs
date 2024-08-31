@@ -173,16 +173,16 @@ namespace BlazorAuthTemplate.Services
 			return blogPosts;
 		}
 
-		public async Task<IEnumerable<BlogPost>> GetPublishedPostsAsync(int page, int pageSize)
+		public async Task<PagedList<BlogPost>> GetPublishedPostsAsync(int page, int pageSize)
 		{
 			using ApplicationDbContext context = contextFactory.CreateDbContext();
 
-			IEnumerable<BlogPost> blogPosts = await context.BlogPosts
+			PagedList<BlogPost> blogPosts = await context.BlogPosts
 									                       .Where(b => b.IsPublished == true && b.IsDeleted == false)
 														   .Include(b => b.Category)
 														   .Include(b => b.Comments)
 														   .OrderByDescending(b => b.Created)	
-														   .ToListAsync();
+														   .ToPagedListAsync(page, pageSize);
 			return blogPosts;
 		}
 

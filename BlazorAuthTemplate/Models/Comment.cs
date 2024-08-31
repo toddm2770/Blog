@@ -1,7 +1,6 @@
 ﻿using BlazorAuthTemplate.Client.Helpers;
 using BlazorAuthTemplate.Client.Models;
 using BlazorAuthTemplate.Data;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Identity.Client;
 using System.ComponentModel.DataAnnotations;
 

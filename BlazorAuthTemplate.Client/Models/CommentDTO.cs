@@ -6,7 +6,7 @@ namespace BlazorAuthTemplate.Client.Models
     public class CommentDTO
     {
         private DateTimeOffset _created;
-        private DateTimeOffset _updated;
+        private DateTimeOffset? _updated;
 
         public int Id { get; set; }
 
@@ -23,16 +23,16 @@ namespace BlazorAuthTemplate.Client.Models
         }
 
         [Display(Name = "Date Updated")]
-        public DateTimeOffset Updated
+        public DateTimeOffset? Updated
         {
             get => _updated;
-            set => _updated = value.ToUniversalTime();
+            set => _updated = value?.ToUniversalTime();
         }
 
         [StringLength(200, MinimumLength = 2)]
         public string? UpdateReason { get; set; }
 
-        [Required]
+
         public string? Author { get; set; }
         public string? AuthorId { get; set; }
 

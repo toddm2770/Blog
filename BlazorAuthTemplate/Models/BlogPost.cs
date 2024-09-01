@@ -18,7 +18,7 @@ namespace BlazorAuthTemplate.Models
         [MaxLength(200, ErrorMessage = "The {0} must not exceed {1} characters.")]
         public string? Title { get; set; }
 
-        //[Required]
+        [Required]
         public string? Slug { get; set; }
 
         [Required]
@@ -82,11 +82,19 @@ namespace BlazorAuthTemplate.Models
             return new BlogPostDTO()
             {
                 Id = post.Id,
-                //BlogPost Properties
                 Title = post.Title,
+                Slug = post.Slug,
+                Abstract = post.Abstract,
+                Content = post.Content,
+                IsPublished = post.IsPublished,
+                IsDeleted = post.IsDeleted,
+                CategoryId = post.CategoryId,
                 Category = category,
                 Comments = [.. post.Comments.Select(c => c.ToDTO())],
-                Tags = tags
+                Tags = tags,
+                Created = post.Created,
+                Updated = post.Updated,
+                ImageUrl = post.ImageUrl
             };
 
         }

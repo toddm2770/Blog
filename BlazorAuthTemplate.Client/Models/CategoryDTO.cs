@@ -15,8 +15,10 @@ namespace BlazorAuthTemplate.Client.Models
 
         public Guid? ImageId { get; set; }
 
-        public string? ImageUrl { get; set; } = ImageHelper.DefaultCategoryImage;
+        public string? ImageUrl { get; set; }
 
         public virtual ICollection<BlogPostDTO> Posts { get; set; } = [];
+
+        public int BlogPostCount { get; set; }
     }
 }

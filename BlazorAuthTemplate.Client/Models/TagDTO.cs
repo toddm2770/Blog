@@ -5,7 +5,7 @@ namespace BlazorAuthTemplate.Client.Models
     {
         public int Id { get; set; }
 
-        public int Name { get; set; }
+        public string? Name { get; set; }
 
         public virtual ICollection<BlogPostDTO>? Posts { get; set; } = [];
     }

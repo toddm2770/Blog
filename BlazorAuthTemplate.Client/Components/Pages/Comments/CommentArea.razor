@@ -1,0 +1,120 @@
+﻿@using BlazorAuthTemplate.Client.Helpers
+@using BlazorAuthTemplate.Client.Services
+
+@inject ICommentService CommentService
+@inject NavigationManager Nav
+
+<div class="pt-4 pt-xl-5 mt-4" id="comments">
+	<div class="d-flex flex-wrap align-items-center">
+		<h2 class="h1 py-lg-1 py-xl-3 text-nowrap me-auto">
+			@(Comments.Count() == 1 ? "1 comment" : $"{Comments.Count()} comments")
+		</h2>
+		<div>
+			<AuthorizeView>
+				<Authorized>
+					<button class = "btn btn-link px-0" data-bs-toggle = "collapse" data-bs-target = "#newCommentForm">
+						Leave a comment
+					</button>
+				</Authorized>
+				<NotAuthorized>
+					<a class="btn btn-link px-0" href="@Nav.GetUriWithQueryParameters("Account/Login", new Dictionary<string, object?> {["ReturnUrl"] = Nav.Uri})">
+						Login to comment
+						<i class="ai-chevron-right fs-lg ms-1"></i>
+					</a>
+				</NotAuthorized>
+			</AuthorizeView>
+		</div>
+	</div>
+
+		<AuthorizeView>
+			<div class="collapse p-3" id="newCommentForm">
+				<CommentForm Comment = "new CommentDTO()" OnSubmit="HandleCreateComment" />
+			</div>
+		</AuthorizeView>
+
+			@if (Comments.Count() == 0)
+			{
+				<div class="text-center py-5 text-muted fs-4">
+					Wow! Such empty!
+				</div>
+			}
+			else
+			{
+				foreach (CommentDTO comment in Comments.OrderByDescending(c => c.Created))
+				{
+					<CommentListItem OnEdit="HandleEditComment" OnDelete="HandleDeleteComment" Editable="comment.AuthorId == userInfo?.UserId" Comment="comment" />
+					<p>@comment.Content - @comment.AuthorName - @comment.Created</p>
+				}
+			}
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public int BlogPostId { get; set; }
+
+	[Parameter]
+	public IEnumerable<CommentDTO> Comments { get; set; } = [];
+
+	[CascadingParameter]
+	public Task<AuthenticationState>? AuthStateTask { get; set; }
+
+	private UserInfo? userInfo;
+
+
+	protected override async Task OnParametersSetAsync()
+	{
+		userInfo = await UserInfoHelper.GetUserInfoAsync(AuthStateTask);
+	}
+
+	private async Task HandleCreateComment(CommentDTO comment)
+	{
+		try
+		{
+			comment.BlogPostId = BlogPostId;
+			comment.AuthorId = userInfo!.UserId;
+
+			await CommentService.CreateCommentAsync(comment);
+
+			Comments = await CommentService.GetCommentsAsync(BlogPostId);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+
+	private async Task HandleEditComment(CommentDTO comment)
+	{
+		try
+		{
+			if(comment.AuthorId == userInfo!.UserId || userInfo.Roles.Any(r => r == "Author" || r == "Moderator"))
+			{
+				await CommentService.UpdateCommentAsync(comment);
+				Comments = await CommentService.GetCommentsAsync(BlogPostId);
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+
+	private async Task HandleDeleteComment(CommentDTO comment)
+	{
+		try
+		{
+			if (comment.AuthorId == userInfo!.UserId || userInfo.Roles.Any(r => r == "Author" || r == "Moderator"))
+			{
+				await CommentService.DeleteCommentAsync(comment.Id);
+				Comments = await CommentService.GetCommentsAsync(BlogPostId);
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+}

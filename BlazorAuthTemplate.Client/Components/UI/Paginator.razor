@@ -1,0 +1,82 @@
+﻿@inject NavigationManager Nav
+
+<div class="row gy-3 align-items-center mt-lg-5 pt-2 pt-md-4 pt-lg-0">
+    <div class="col col-md-4 col-6 order-md-1 order-1">
+        <div class="d-flex align-items-center gap-2">
+            @if (Page > 1)
+            {
+                <a href="@Nav.GetUriWithQueryParameter(nameof(Page), Page - 1)" class="btn btn-sm btn-primary" aria-label="previous page">
+                    <i class="ai-arrow-left"></i>
+                </a>
+            }
+
+            @if (Page < TotalPages)
+            {
+                <a href="@Nav.GetUriWithQueryParameter(nameof(Page), Page + 1)" class="btn btn-sm btn-primary" aria-label="next page">
+                    <i class="ai-arrow-right"></i>
+                </a>
+            }
+        </div>
+    </div>
+    <div class="col col-md-4 col-12 order-md-2 order-3 text-center text-muted">
+        Page @Page of @TotalPages
+    </div>
+    <div class="col col-md-4 col-6 order-md-3 order-2">
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm justify-content-end">
+                @if (pages.FirstOrDefault() > 1)
+                {
+                    <li class="page-item"><a class="page-link" href="@Nav.GetUriWithQueryParameter(nameof(Page), 1)">@("<<")</a></li>
+                }
+
+                @foreach (int i in pages)
+                {
+                    if (i == Page)
+                    {
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">@Page<span class="visually-hidden">(current)</span></span>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item"><a class="page-link" href="@Nav.GetUriWithQueryParameter(nameof(Page), i)">@i</a></li>
+                    }
+                }
+
+                @if (pages.LastOrDefault() < TotalPages)
+                {
+                    <li class="page-item"><a class="page-link" href="@Nav.GetUriWithQueryParameter(nameof(Page), TotalPages)">@(">>")</a></li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int TotalPages { get; set; }
+
+    [SupplyParameterFromQuery]
+    public int Page { get; set; }
+
+    private IEnumerable<int> pages = [];
+
+    protected override void OnParametersSet()
+    {
+        if (Page > TotalPages && TotalPages != 0)
+        {
+            string url = Nav.GetUriWithQueryParameter(nameof(Page), TotalPages);
+            Nav.NavigateTo(url);
+        }
+        else if (Page < 1)
+        {
+            Page = 1;
+        }
+
+        int minPage = Math.Max(1, Page - 2);
+        int maxPage = Math.Min(TotalPages - 4, Page + 2);
+        int start = Math.Min(minPage < 1 ? 1 : minPage, maxPage < 1 ? 1 : maxPage);
+
+        pages = Enumerable.Range(start, Math.Min(5, TotalPages));
+    }
+}

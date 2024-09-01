@@ -6,7 +6,7 @@ namespace BlazorAuthTemplate.Client.Helpers
 	{
 		public static readonly string DefaultProfilePicture = "/image/DefaultContactImage.png";
 		public static readonly string DefaultBlogImage = "/image/DefaultContactImage.png";
-		public static readonly string DefaultCategoryImage = "/image/DefaultContactImage.png";
+		public static readonly string DefaultCategoryImage = "/image/DefaultCategoryImage.jpg";
 
         public static int MaxFileSize = 5 * 1024 * 1024;
 

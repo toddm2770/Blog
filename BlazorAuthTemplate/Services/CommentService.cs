@@ -3,7 +3,6 @@ using BlazorAuthTemplate.Client.Models;
 using BlazorAuthTemplate.Models;
 using BlazorAuthTemplate.Services.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
-using SendGrid.Helpers.Mail;
 using BlazorAuthTemplate.client.Services.Interfaces;
 
 namespace BlazorAuthTemplate.Services

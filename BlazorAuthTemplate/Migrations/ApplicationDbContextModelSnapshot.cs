@@ -132,6 +132,7 @@ namespace BlazorAuthTemplate.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Slug")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Title")
@@ -204,7 +205,7 @@ namespace BlazorAuthTemplate.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTimeOffset>("Updated")
+                    b.Property<DateTimeOffset?>("Updated")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -243,8 +244,9 @@ namespace BlazorAuthTemplate.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Name")
-                        .HasColumnType("integer");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

@@ -2,6 +2,7 @@
 using BlazorAuthTemplate.Models;
 using BlazorAuthTemplate.Services.Interfaces;
 using BlazorAuthTemplate.client.Services.Interfaces;
+using BlazorAuthTemplate.Helpers;
 
 namespace BlazorAuthTemplate.Services
 {
@@ -19,9 +20,13 @@ namespace BlazorAuthTemplate.Services
 			Category newCategory = new()
 			{
 				Name = categoryDTO.Name,
-				Description = categoryDTO.Description
+				Description = categoryDTO.Description,
 			};
 
+			if (categoryDTO.ImageUrl!.StartsWith("data:") == true)
+			{
+				newCategory.Image = UploadHelper.GetImageUpload(categoryDTO.ImageUrl);
+			}
 			Category createdCategory = await _repository.CreateCategoryAsync(newCategory);
 
 			return createdCategory.ToDTO();
@@ -44,18 +49,34 @@ namespace BlazorAuthTemplate.Services
 			return category?.ToDTO();
 		}
 
-		public async Task UpdateCategoryAsync(CategoryDTO categoryDTO)
+        public async Task<IEnumerable<CategoryDTO>> GetTopCategoriesAsync(int count)
+        {
+            IEnumerable<Category> categories = await _repository.GetTopCategoriesAsync(count);
+
+			return categories.Select(c => c.ToDTO());
+        }
+
+        public async Task UpdateCategoryAsync(CategoryDTO categoryDTO)
 		{
-			Category? categoryToUpdate = await _repository.GetCategoryByIdAsync(categoryDTO.Id);
-			if (categoryToUpdate != null)
+			var categoryToUpdate = await _repository.GetCategoryByIdAsync(categoryDTO.Id);
+			if (categoryToUpdate is null)
 			{
-				categoryToUpdate.Posts.Clear();
-
-				categoryToUpdate.Name = categoryDTO.Name;
-				categoryToUpdate.Description = categoryDTO.Description;
-
-				await _repository.UpdateCategoryAsync(categoryToUpdate);
+				return;
 			}
+
+			categoryToUpdate.Name = categoryDTO.Name;
+			categoryToUpdate.Description = categoryDTO.Description;
+
+			if (categoryDTO.ImageUrl.StartsWith("data:"))
+			{
+				categoryToUpdate.Image = UploadHelper.GetImageUpload(categoryDTO.ImageUrl);
+			}
+			else
+			{
+				categoryToUpdate.Image = null;
+			}
+
+			await _repository.UpdateCategoryAsync(categoryToUpdate);
 		}
 	}
 }

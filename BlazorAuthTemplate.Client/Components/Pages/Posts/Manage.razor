@@ -1,0 +1,153 @@
+﻿@page "/author/posts/manage"
+@using BlazorAuthTemplate.Models
+
+@inject IBlogPostService BlogService
+
+@rendermode InteractiveServer
+
+
+
+<div class="text-end">
+	Published Posts<input type="checkbox" @bind-value="PublishedCheckBox" class="ms-1 me-3" checked/>
+	Draft Posts<input type="checkbox" @bind-value="DraftCheckBox" class="ms-1 me-3" />
+	Deleted Posts<input type="checkbox" @bind-value="DeletedCheckBox" class="ms-1 me-3" />
+</div>
+
+@if (PublishedCheckBox == true)
+{
+	@foreach (var BlogPost in publishedBlogPosts.Data)
+	{
+		<h4 class="text-center align-items-bottom mt-5 text-primary">Published</h4>
+		<div @key="BlogPost.Id">
+			<BlogPostEditForm BlogPost="BlogPost" OnRestoreCallBack="RestorePost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>
+		</div>
+	}
+}
+
+@if (DraftCheckBox == true)
+{
+	@foreach (var BlogPost in draftBlogPosts)
+	{
+		<h4 class="text-center align-items-bottom mt-5 text-warning">Draft</h4>
+		<div @key="BlogPost.Id">
+			<BlogPostEditForm BlogPost="BlogPost" OnRestoreCallBack="RestorePost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>		
+		</div>
+	}
+}
+
+@if (DeletedCheckBox == true)
+{
+	@foreach (var BlogPost in deletedBlogPosts)
+	{
+		<h4 class="text-center align-items-bottom mt-5 text-danger">Deleted</h4>
+		<div @key="BlogPost.Id">
+			<BlogPostEditForm BlogPost="BlogPost" OnRestoreCallBack="RestorePost" OnDeleteCallBack="DeletePost" OnEditCallBack="UpdatePost"></BlogPostEditForm>
+		</div>
+	}
+}
+
+
+
+@code {
+
+	private PagedList<BlogPostDTO> publishedBlogPosts = new();
+
+	private IEnumerable<BlogPostDTO> deletedBlogPosts = [];
+
+	private IEnumerable<BlogPostDTO> draftBlogPosts = [];
+
+	private BlogPostDTO? BlogPost { get; set; }
+
+	bool PublishedCheckBox = true;
+
+	bool DraftCheckBox = false;
+
+	bool DeletedCheckBox = false;
+
+	int page = 1;
+
+	int pageSize = 10;
+
+	//int page, int pageSize
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync(page, pageSize);
+
+			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
+
+			draftBlogPosts = await BlogService.GetDraftPostsAsync();
+
+		}
+		catch (Exception ex)
+		{
+
+			Console.WriteLine(ex);
+		}
+	}
+
+	private async Task DeletePost(BlogPostDTO BlogPost)
+	{
+
+		try
+		{
+			await BlogService.DeleteBlogPostAsync(BlogPost!.Id);
+
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync(page, pageSize);
+
+			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
+
+			draftBlogPosts = await BlogService.GetDraftPostsAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+
+	private async Task UpdatePost(BlogPostDTO BlogPost)
+	{
+		try
+		{
+
+			await BlogService.UpdateBlogPostAsync(BlogPost);
+
+			BlogPost = new BlogPostDTO();
+
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync(page, pageSize);
+
+			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
+
+			draftBlogPosts = await BlogService.GetDraftPostsAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+
+	private async Task RestorePost(BlogPostDTO blogPost)
+	{
+		try
+		{
+			await BlogService.RestoreBlogPostAsync(blogPost.Id);
+
+			BlogPost = new BlogPostDTO();
+
+			publishedBlogPosts = await BlogService.GetPublishedPostsAsync(page, pageSize);
+
+			deletedBlogPosts = await BlogService.GetDeletedPostsAsync();
+
+			draftBlogPosts = await BlogService.GetDraftPostsAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+}

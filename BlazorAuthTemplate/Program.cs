@@ -1,12 +1,20 @@
 using BlazorAuthTemplate.client.Services.Interfaces;
+using BlazorAuthTemplate.Client.Models;
 using BlazorAuthTemplate.Components;
 using BlazorAuthTemplate.Components.Account;
 using BlazorAuthTemplate.Data;
+using BlazorAuthTemplate.Models;
 using BlazorAuthTemplate.Services;
 using BlazorAuthTemplate.Services.Interfaces;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
+using Scalar.AspNetCore;
+using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,7 +66,52 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, GoogleEmailService>();
+builder.Services.AddSingleton<IEmailSender, GoogleEmailService>();
+
+
+//builder.Services.AddEndpointsApiExplorer();
+//builder.Services.AddSwaggerGen(opts =>
+//{
+//    opts.SwaggerDoc("v1", new() { Title = "Blog", Version = "v1" });
+
+//    opts.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+//    {
+//        Name = HeaderNames.Authorization,
+//        In = ParameterLocation.Header,
+//        Type = SecuritySchemeType.Http,
+//        Scheme = "Bearer",
+//    });
+
+//    opts.AddSecurityDefinition("Cookie", new OpenApiSecurityScheme
+//    {
+//        Name = ".AspNetCore.Identity.Application",
+//        In = ParameterLocation.Cookie,
+//        Type = SecuritySchemeType.Http,
+//        Scheme = "Cookie",
+//    });
+
+//    opts.OperationFilter<SecurityRequirementsOperationFilter>();
+
+//});
+
+
+builder.Services.AddCors(builder =>
+{
+	builder.AddPolicy("DefaultPolicy", policy =>
+	{
+		policy.AllowAnyOrigin()
+			.AllowAnyHeader()
+			.AllowAnyMethod();
+	});
+});
+
 var app = builder.Build();
+
+app.UseCors("DefaultPolicy");
+
+// ...
 
 var scope = app.Services.CreateScope();
 await DataUtility.ManageDataAsync(scope.ServiceProvider);
@@ -68,6 +121,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
     app.UseMigrationsEndPoint();
+
+    //app.UseSwagger(o => o.RouteTemplate = "/openapi/{documentName}.json");
+    //app.MapScalarApiReference();
 }
 else
 {
@@ -92,5 +148,21 @@ app.MapRazorComponents<App>()
 app.MapAdditionalIdentityEndpoints();
 
 app.MapControllers();
+
+app.MapGet("api/blogposts", async ([FromServices] IBlogPostService blogService,
+								   [FromQuery] int page = 1,
+								   [FromQuery] int pageSize = 4) =>
+{
+	try
+	{
+		PagedList<BlogPostDTO> blogPosts = await blogService.GetPublishedPostsAsync(page, pageSize);
+		return Results.Ok(blogPosts);
+	}
+	catch (Exception ex)
+	{
+		Console.WriteLine(ex);
+		return Results.Problem();
+	}
+});
 
 app.Run();

@@ -36,18 +36,31 @@
 				<label class="form-label">Image</label>
 				<img class="img-fluid rounded-3" style="max-height: 350px" 
 						src="@(string.IsNullOrEmpty(BlogPost.ImageUrl) ? ImageHelper.DefaultBlogImage : BlogPost.ImageUrl)" />
-				<InputFile class="form-control" accept=".png, .jpg, .jpeg, .svg" OnChange="HandleFileChange" @bind-value="BlogPost.ImageUrl" />
+				<InputFile class="form-control" accept=".png, .jpg, .jpeg, .svg" OnChange="HandleFileChange" @bind-Value="BlogPost.ImageUrl" />
 				<span class="text-danger">@fileError</span>
 			</div>
 		</div>
-		<div class="col-lg-8">
+		<div class="col-lg-8 vstack gap-2">
+			@* post content*@
 			<div class="flex-fill vstack">
 				<label class="form-label">Content</label>
-				<InputTextArea class="form-control" @bind-Value="BlogPost.Content" rows="30"/>
+				<TinyMCE.Blazor.Editor ScriptSrc="/tinymce/tinymce.min.js"
+									   @bind-Value="BlogPost.Content"
+									   Field="() => BlogPost.Content"
+									   ClassName="rich-text-editor"
+									   Conf="editorConfig" />
 				<ValidationMessage For="() => BlogPost.Content" />
 			</div>
-
-			@*Tags Here*@
+		</div>
+		@*Tags*@
+		<div class="mb-2">
+			<label class="form-label">Tags</label>
+			<InputText @bind-Value="tagNames" class="form-control" />
+		</div>
+		@*Slug*@
+		<div class="mb-2">
+			<label class="form-label">Slug</label>
+			<InputText @bind-Value="BlogPost.Slug" class="form-control" />
 		</div>
 		<div class="col-12">
 			@*isPublished*@
@@ -75,6 +88,29 @@
 
 	private string? fileError;
 
+	private string tagNames = string.Empty;
+
+	// tinyMCE config
+	private static readonly Dictionary<string, object> editorConfig = new()
+    {
+        { "toolbar", "undo redo | bold italic underline | link codesample " },
+        { "plugins", "anchor autolink link charmap preview table codesample" },
+        { "default_link_target", "_blank" },
+        { "link_assume_external_targets", true },
+        { "link_context_toolbar", true },
+        { "codesample_languages", new object[] {
+                new { text = "HTML/XML", value = "markup" },
+                new { text = "JavaScript", value = "javascript" },
+                new { text = "CSS", value = "css" },
+                new { text = "C#", value = "csharp" },
+                new { text = "Razor", value = "razor" },
+                new { text = "JSON", value = "json" },
+    }
+        },
+        { "codesample_global_prismjs", true },
+        { "promotion", false },
+        { "height", "100%" },
+    };
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -88,10 +124,39 @@
 		}
 	}
 
+	protected override void OnParametersSet()
+	{
+		if(BlogPost == null)
+		{
+			return;
+		}
+
+		List<string> names = [];
+
+		foreach (TagDTO tag in BlogPost.Tags!)
+		{
+			names.Add(tag.Name!);
+		}
+
+		tagNames = string.Join(", ", names);
+	}
+
 	private async Task HandleSubmit()
 	{
 		try
 		{
+			IEnumerable<string> listofTagNames = tagNames.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+			List<TagDTO> tags = [];
+
+			foreach(string name in listofTagNames)
+			{
+				TagDTO tag = new TagDTO() { Name = name };
+				tags.Add(tag);
+			}
+
+			BlogPost!.Tags = tags;
+
 			await OnSubmit.InvokeAsync(BlogPost);
 		}
 		catch (Exception ex)

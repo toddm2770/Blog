@@ -1,7 +1,6 @@
 ﻿using BlazorAuthTemplate.Client.Helpers;
 using BlazorAuthTemplate.Client.Models;
 using BlazorAuthTemplate.Data;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Identity.Client;
 using System.ComponentModel.DataAnnotations;
 
@@ -10,7 +9,7 @@ namespace BlazorAuthTemplate.Models
     public class Comment
     {
         private DateTimeOffset _created;
-        private DateTimeOffset _updated;
+        private DateTimeOffset? _updated;
 
         public int Id { get; set; }
 
@@ -25,10 +24,10 @@ namespace BlazorAuthTemplate.Models
             set => _created = value.ToUniversalTime();
         }
 
-        public DateTimeOffset Updated
+        public DateTimeOffset? Updated
         {
             get => _updated;
-            set => _updated = value.ToUniversalTime();
+            set => _updated = value?.ToUniversalTime();
         }
 
         [MaxLength(200)]

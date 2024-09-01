@@ -149,3 +149,8 @@ code {
     object-fit: cover;
     object-position: top;
 }
+
+.card-image {
+    width: 100%;
+    height: auto;
+}

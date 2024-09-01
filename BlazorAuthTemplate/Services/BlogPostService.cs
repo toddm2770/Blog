@@ -45,6 +45,10 @@ namespace BlazorAuthTemplate.Services
 
 			newBlogPost = await _repository.CreateBlogPostAsync(newBlogPost);
 
+			IEnumerable<string> tagNames = blogPostDTO.Tags!.Select(t => t.Name!);
+
+			await _repository.AddTagsToBlogPostAsync(newBlogPost.Id, tagNames);
+
 			return newBlogPost.ToDTO();
 		}
 
@@ -89,42 +93,79 @@ namespace BlazorAuthTemplate.Services
 			return dtos;
 		}
 
-		public async Task<IEnumerable<BlogPostDTO>> GetPublishedPostsAsync()
+		public async Task<IEnumerable<BlogPostDTO>> GetPostsByTagIdAsync(int tagId, int page, int pageSize)
 		{
-			IEnumerable<BlogPost> blogPost = await _repository.GetPublishedPostsAsync(0, 0);
+			IEnumerable<BlogPost> blogPost = await _repository.GetPostsByTagIdAsync(tagId, 0, 0);
 
-			IEnumerable<BlogPostDTO> dtos = blogPost.Select(propa => propa.ToDTO());
-
-			List<BlogPostDTO> blogPostDTOs = [];
-
-			foreach(var post in blogPost)
-			{
-				blogPostDTOs.Add(post.ToDTO());
-			}
-
-			dtos = blogPostDTOs;
+			IEnumerable<BlogPostDTO> dtos = blogPost.Select(p =>p.ToDTO());
 
 			return dtos;
 		}
 
-		public async Task PublishBlogPostAsync(int blogPostId) =>	
+		public async Task<PagedList<BlogPostDTO>> GetPublishedPostsAsync(int page, int pageSize)
+		{
+			PagedList<BlogPost> blogPost = await _repository.GetPublishedPostsAsync(page, pageSize);
+
+			List<BlogPostDTO> blogPostDTOs = blogPost.Data.Select(p => p.ToDTO()).ToList();
+
+			PagedList<BlogPostDTO> dtos = new PagedList<BlogPostDTO>
+			{
+				Page = blogPost.Page,
+				TotalPages = blogPost.TotalPages,
+				TotalItems = blogPost.TotalItems,
+				Data = blogPostDTOs
+			};
+
+			return dtos;
+		}
+
+		public async Task<TagDTO?> GetTagByIdAsync(int id)
+		{
+			Tag? tag = await _repository.GetTagByIdAsync(id);
+
+			return tag?.ToDTO();
+		}
+
+		public async Task<IEnumerable<BlogPostDTO>> GetTopBlogPostsAsync(int count)
+        {
+            IEnumerable<BlogPost> blogPosts = await _repository.GetTopBlogPostsAsync(count);
+
+            return blogPosts.Select(c => c.ToDTO());
+        }
+
+        public async Task PublishBlogPostAsync(int blogPostId) =>	
 			await _repository.PublishBlogPostAsync(blogPostId);
 		
 
 		public async Task RestoreBlogPostAsync(int blogPostId) =>		
 			await _repository.RestoreBlogPostAsync(blogPostId);
-		
 
-		public async Task UnpublishBlogPostAsync(int blogPostId) =>		
+        public async Task<PagedList<BlogPostDTO>> SearchBlogPostsAsync(string query, int page, int pageSize)
+        {
+			PagedList<BlogPost> posts = await _repository.SearchBlogPostsAsync(query, page, pageSize);
+
+			PagedList<BlogPostDTO> postDTOs = new()
+			{
+				Page = posts.Page,
+				TotalPages = posts.TotalPages,
+				TotalItems = posts.TotalItems,
+				Data = posts.Data.Select(p => p.ToDTO())
+			};
+			return postDTOs;
+        }
+
+        public async Task UnpublishBlogPostAsync(int blogPostId) =>		
 			await _repository.UnpublishBlogPostAsync(blogPostId);
 		
 
 		public async Task UpdateBlogPostAsync(BlogPostDTO blogPost)
 		{
+			await _repository.RemoveTagsFromBlogPostAsync(blogPost.Id);
+
 			BlogPost? originalPost = await _repository.GetBlogPostByIdAsync(blogPost.Id);
 
-			if (originalPost is not null)
-			{
+			if (originalPost is null) { return; }
+			
 				originalPost.Title = blogPost.Title;
 				originalPost.Slug = blogPost.Slug;
 				originalPost.Abstract = blogPost.Abstract;
@@ -148,8 +189,11 @@ namespace BlazorAuthTemplate.Services
 				}
 				else originalPost.Image = null;
 
-				await _repository.UpdateBlogPostAsync(originalPost);
-			}
+				await _repository.UpdateBlogPostAsync(originalPost);		
+
+				IEnumerable<string> tagNames = blogPost.Tags.Select(t => t.Name);
+
+				await _repository.AddTagsToBlogPostAsync(originalPost.Id, tagNames);
 		}
 	}
 }

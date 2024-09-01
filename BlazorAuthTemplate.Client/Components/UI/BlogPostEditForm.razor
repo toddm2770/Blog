@@ -1,0 +1,198 @@
+﻿@using BlazorAuthTemplate.Client.Helpers
+@using BlazorAuthTemplate.Models
+@inject IBlogPostService BlogService
+@inject ICategoryService CategoryService
+
+
+
+@if (BlogPost is not null)
+{
+	if(status == Status.Viewing)
+	{
+		<div class="card h-100 shadow-lg card-image mb-2">
+			<div class="row g-0">
+				<div class="col-12 col-md-4 rounded-start overflow-hidden">
+					<img src="@BlogPost.ImageUrl" class="square-img" style="max-height: 300px" />
+				</div>
+				<div class="col-12 col-md-8">
+					<div class="card-body">
+						<h5 class="card-title">@BlogPost.Title</h5>
+						<p>@BlogPost.Abstract</p>
+						<p>@BlogPost.Category</p>
+						<button @onclick="() => status = Status.Editing" class="btn btn-outline-warning">Edit</button>
+						<button @onclick="() => status = Status.Deleting" class="btn btn-danger">Delete</button>
+						@if (BlogPost.IsDeleted == true)
+						{
+							<button @onclick="RestorePost" class="btn btn-outline-primary">Restore</button>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+
+	if(status == Status.Deleting)
+	{
+		<div class="card h-100 shadow-lg mt-2 card-image">
+			<div class="row g-0">
+				<div class="col-12 col-md-4 rounded-start overflow-hidden">
+					<img src="@BlogPost.ImageUrl" class="square-img" style="max-height: 200px" />
+				</div>
+				<div class="col-12 col-md-8">
+					<div class="card-body">
+						<h5 class="card-title">@BlogPost.Title</h5>
+						<p>@BlogPost.Abstract</p>
+						<p>@BlogPost.Category</p>
+						<button @onclick="DeletePost" class="btn btn-danger">Delete</button>
+						<button @onclick="() => status = Status.Viewing" class="btn btn-outline-warning">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+
+	if(status == Status.Editing)
+	{
+		<BlogPostForm BlogPost="blogPostForm" OnSubmit="UpdateItem"></BlogPostForm>
+	}
+}
+
+
+@code {
+	[Parameter, EditorRequired]
+	public BlogPostDTO? BlogPost { get; set; }
+
+	[Parameter]
+	public EventCallback<BlogPostDTO> OnDeleteCallBack { get; set; }
+
+	[Parameter]
+	public EventCallback<BlogPostDTO> OnEditCallBack { get; set; }
+
+	[Parameter]
+	public EventCallback<BlogPostDTO> OnRestoreCallBack { get; set; }
+
+	private BlogPostDTO? blogPostForm;
+
+	private PagedList<BlogPostDTO>? blogPosts { get; set; }
+
+	private IEnumerable<CategoryDTO> categories = [];
+
+	private string? fileError;
+
+	int page = 1;
+
+	int pageSize = 10;
+
+	private enum Status
+	{
+		Viewing,
+		Editing,
+		Deleting
+	}
+
+	private Status status = Status.Viewing;
+
+	protected async override Task OnInitializedAsync()
+	{
+		categories = await CategoryService.GetCategoriesAsync();
+	}
+
+	protected override void OnParametersSet()
+	{
+		blogPostForm = new()
+			{
+				Id = BlogPost.Id,
+				Title = BlogPost.Title,
+				Abstract = BlogPost.Abstract,
+				Content = BlogPost.Content,
+				CategoryId = BlogPost.CategoryId,
+				Tags = BlogPost.Tags,
+				Created = BlogPost.Created,
+				Updated = BlogPost.Updated,
+				ImageUrl = BlogPost?.ImageUrl ?? ImageHelper.DefaultBlogImage
+
+			};
+	}
+
+	public async Task DeletePost()
+	{
+		try
+		{
+			await OnDeleteCallBack.InvokeAsync(BlogPost);
+			status = Status.Viewing;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+
+	public async Task UpdateItem()
+	{
+		try
+		{
+			await OnEditCallBack.InvokeAsync(blogPostForm);
+			status = Status.Viewing;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+
+	public async Task RestorePost()
+	{
+		try
+		{
+			await OnRestoreCallBack.InvokeAsync(BlogPost);
+			status = Status.Viewing;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			throw;
+		}
+	}
+
+	private async Task OnFileChange(InputFileChangeEventArgs changeEvent)
+	{
+		fileError = null;
+
+		IBrowserFile selectedFile = changeEvent.File;
+
+		if (selectedFile.Size > ImageHelper.MaxFileSize)
+		{
+			fileError = "The selected image is too large.";
+		}
+
+		try
+		{
+
+			blogPostForm!.ImageUrl = await ImageHelper.GetDataUrlAsync(selectedFile);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			fileError = "Could not read the selected file.";
+		}
+	}
+
+	private async void CancelEdit()
+	{
+		blogPostForm = new()
+			{
+				Id = BlogPost!.Id,
+				Title = BlogPost.Title,
+				Abstract = BlogPost.Abstract,
+				Category = BlogPost.Category,
+				Tags = BlogPost.Tags,
+				Created = BlogPost.Created,
+				Updated = BlogPost.Updated,
+				ImageUrl = BlogPost?.ImageUrl ?? ImageHelper.DefaultBlogImage
+			};
+			status = Status.Viewing;
+			blogPosts = await BlogService.GetPublishedPostsAsync(page, pageSize);
+	}
+}
